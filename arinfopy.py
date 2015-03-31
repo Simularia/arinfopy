@@ -37,7 +37,7 @@ import sys, struct, os
 from datetime import datetime, timedelta
 
 
-DEBUG = False
+DEBUG = True
 if DEBUG  :
     os.system('python --version')
     os.system('which python')

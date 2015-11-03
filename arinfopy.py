@@ -128,9 +128,9 @@ while start < len(data) :
     start, binData = readADSOChunk(start,data)
     ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
 
-    # if DEBUG :
-    #     print 'ident1 :', ident1
-    #     print 'ident2 :', ident2
+    if DEBUG :
+         print 'ident1 :', ident1
+         print 'ident2 :', ident2
 
     
     
@@ -205,6 +205,9 @@ while start < len(data) :
     if DEBUG :
         print 'firstdl   :', firstdl
         print 'currentdl :', currentdl
+        print 'nvar3d    :', nvar3d
+        print 'nvar2d    :', nvar2d
+        print 'kmmai     :', kmmai
 
     # 
     # -----RECORD NUMBER 4-------------------------------------
@@ -245,6 +248,8 @@ while start < len(data) :
     ylatso = fnum[i+5]
     ztop = fnum[i+10]
 
+    if DEBUG:
+        print 'ztop :', ztop
 
     # 
     # -----RECORD NUMBER 5 : CHARACTER ARRAYS-------------------
@@ -313,6 +318,8 @@ while start < len(data) :
         print '--- Read 3D fields'
     
     for i in range(nvar3d)  :
+        if DEBUG:
+            print '--- Read 3D variable #', i
         # if DEBUG :
         #     print
         #     print '--- Read 3D variable # ', i
@@ -320,9 +327,9 @@ while start < len(data) :
 
 
     for i in range(nvar2d)  :
-        # if DEBUG :
+        if DEBUG :
         #     print
-        #     print '--- Read 2D variable #', i
+             print '--- Read 2D variable #', i
         start, binData = readADSOChunk(start, data)
 
 # # Check if we are at the end of file

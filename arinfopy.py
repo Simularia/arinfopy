@@ -37,13 +37,6 @@ import struct
 import argparse
 from datetime import datetime, timedelta
 
-
-DEBUG = True
-if DEBUG  :
-    os.system('python --version')
-    os.system('which python')
-
-
 # Function to read from ADSO/BIN 
 #   fortran unformatted file add 4 bytes at the beginning and at the end
 #       of each chunk of data written
@@ -84,7 +77,11 @@ def arinfopy(fInput, DEBUG):
     #
     # Open, read and close ADSO/bin file
     #
-    with open(str(sys.argv[1]), "rb") as f :
+    if DEBUG  :
+        os.system('python --version')
+        os.system('which python')
+
+    with open(fInput, 'rb') as f :
         data = f.read()
     #f.close()
 
@@ -95,15 +92,13 @@ def arinfopy(fInput, DEBUG):
 
     # Loop on binary data
     while start < len(data) :
-
         # Count number of deadlines
         necdis = necdis+1
 
         if DEBUG :
-            print
-            print '-------------------'
-            print 'Deadline # %s ' % necdis
-            print '-------------------'
+            print('\n-------------------')
+            print('Deadline # {} '.format(necdis))
+            print('-------------------')
                 
         # 
         # -----DECLARATION OF THE "BINAIRA" TYPE
@@ -157,38 +152,27 @@ def arinfopy(fInput, DEBUG):
         
         start, binData = readADSOChunk(start, data)
         num = struct.unpack('@27i',binData)
-        ijozer = num[0]
-        imozer = num[1]
-        ianzer = num[2]
-        ihezer = num[3]
-        imizer = num[4]
-        isezer = num[5]
-        ijozei = num[6]
-        imozei = num[7]
-        ianzei = num[8]
-        ihezei = num[9]
-        imizei = num[10]
-        isezei = num[11]
-        immai = num[12]
-        jmmai = num[13]
-        kmmai = num[14]
-        nreper = num[15]
-        nvar3d = num[16]
-        nvar2d = num[17]
-        nevt = num[18]
-        itmax = num[19]
-        nevtpr = num[20]
-        itmopro = num[21]
-        IINDEX = num[22]
-        IKSURF = num[23]
+        rec3 = {'ijozer': num[0], 'imozer': num[1], 'ianzer': num[2],
+                'ihezer': num[3], 'imizer': num[4], 'isezer': num[5],
+                'ijozei': num[6], 'imozei': num[7], 'ianzei': num[8],
+                'ihezei': num[9], 'imizei': num[10], 'isezei': num[11],
+                'immai': num[12], 'jmmai': num[13], 'kmmai': num[14], 
+                'nreper': num[15], 'nvar3d': num[16], 'nvar2d': num[17],
+                'nevt': num[18], 'itmax': num[19], 'nevtpr': num[20],
+                'itmopro': num[21], 'IINDEX': num[22], 'IKSURF': num[23]}
 
         # Read current deadline
-        currentdl = datetime(2000+ianzer, imozer, ijozer, ihezer % 24, imizer, isezer)
-        
+        currentdl = datetime(2000 + rec3['ianzer'], 
+                             rec3['imozer'],
+                             rec3['ijozer'], 
+                             rec3['ihezer'] % 24, 
+                             rec3['imizer'],
+                             rec3['isezer'])
+
         # Correct if hour = 24 since in datetime 0 <= hour < 24
-        if ihezer == 24:
+        if rec3['ihezer'] == 24:
             currentdl = currentdl + timedelta(1)
-        
+
         # Set first deadline
         if necdis == 1 :
             firstdl = currentdl
@@ -198,11 +182,12 @@ def arinfopy(fInput, DEBUG):
             dtsecs = (currentdl - firstdl).seconds
         
         if DEBUG :
-            print 'firstdl   :', firstdl
-            print 'currentdl :', currentdl
-            print 'nvar3d    :', nvar3d
-            print 'nvar2d    :', nvar2d
-            print 'kmmai     :', kmmai
+            print('firstdl   : {}'.format(firstdl))
+            print('currentdl : {}'.format(currentdl))
+            print('nvar3d    : {}'.format(rec3['nvar3d']))
+            print('nvar2d    : {}'.format(rec3['nvar2d']))
+            print('kmmai     : {}'.format(rec3['kmmai']))
+            print('nreper    : {}'.format(rec3['nreper']))
 
         # 
         # -----RECORD NUMBER 4-------------------------------------
@@ -225,7 +210,7 @@ def arinfopy(fInput, DEBUG):
 
         start, binData = readADSOChunk(start, data)
 
-        nReals = 11+kmmai
+        nReals = 11+rec3['kmmai']
 
         typedef = '@' + str(nReals) + 'f'
         if DEBUG :
@@ -233,8 +218,8 @@ def arinfopy(fInput, DEBUG):
 
         fnum = struct.unpack(typedef, binData)
 
-        sgrid=fnum[0:kmmai]
-        i=kmmai
+        sgrid = fnum[0:rec3['kmmai']]
+        i = rec3['kmmai']
         dxmai = fnum[i]
         dymai = fnum[i+1]
         xlso = fnum[i+2] 
@@ -266,7 +251,7 @@ def arinfopy(fInput, DEBUG):
 
         start, binData = readADSOChunk(start, data)
 
-        nStrings = nreper + 2*nvar3d + 2*nvar2d
+        nStrings = rec3['nreper'] + 2 * rec3['nvar3d'] + 2 * rec3['nvar2d']
         typedef = '@' + str(nStrings*8) + 's'
         if DEBUG :
             print 'typedef: ', typedef
@@ -280,25 +265,33 @@ def arinfopy(fInput, DEBUG):
         nomvar2d = ''
         univar2d = ''
 
-        creper = [struct.unpack('@8s', binData[i:nreper*8])[0] for i in range(nreper)]
+        creper = [struct.unpack('@8s', binData[i:rec3['nreper']*8])[0] for i in
+                range(rec3['nreper'])]
 
-        offset = (nreper) * 8
-        nomvar3d = [struct.unpack('@8s', binData[offset+i*8:offset + (i+1)*8])[0] for i in range(nvar3d)]
+        offset = (rec3['nreper']) * 8
+        nomvar3d = [struct.unpack('@8s', binData[offset+i*8:offset +
+            (i+1)*8])[0] for i in range(rec3['nvar3d'])]
 
-        offset = (nreper + nvar3d) * 8
-        univar3d = [struct.unpack('@8s', binData[offset+i*8:offset + (i+1)*8])[0] for i in range(nvar3d)]
+        offset = (rec3['nreper'] + rec3['nvar3d']) * 8
+        univar3d = [struct.unpack('@8s', binData[offset+i*8:offset +
+            (i+1)*8])[0] for i in range(rec3['nvar3d'])]
 
-        offset = (nreper + 2*nvar3d) * 8
-        nomvar2d = [struct.unpack('@8s', binData[offset+i*8:offset + (i+1)*8])[0] for i in range(nvar2d)]
+        offset = (rec3['nreper'] + 2*rec3['nvar3d']) * 8
+        nomvar2d = [struct.unpack('@8s', binData[offset+i*8:offset +
+            (i+1)*8])[0] for i in range(rec3['nvar2d'])]
 
-        offset = (nreper + 2*nvar3d + nvar2d) * 8
-        univar2d = [struct.unpack('@8s', binData[offset+i*8:offset +(i+1)*8])[0] for i in range(nvar2d)]
+        offset = (rec3['nreper'] + 2*rec3['nvar3d'] + rec3['nvar2d']) * 8
+        univar2d = [struct.unpack('@8s', binData[offset+i*8:offset
+            +(i+1)*8])[0] for i in range(rec3['nvar2d'])]
 
         # 
         # -----RECORD NUMBER 6 : KEY POINTS COORDINATES--------------
         # 
         #   3*NREPER REALS
         # 
+        if DEBUG:
+            print('\n--- Read Record 6')
+
 
         # 
         # -----RECORD NUMBER 7 : 3D FIELDS----------------------------
@@ -308,23 +301,17 @@ def arinfopy(fInput, DEBUG):
         # #               NVAR3D 3D arrays with variables on the 3D grid
         # #               orderd as indicated by NOMVAR3D names vector
         # #       
-        if DEBUG :
-            print
-            print '--- Read 3D fields'
+        if DEBUG:
+            print('\n--- Read Record 7 (3D fields)')
         
-        for i in range(nvar3d)  :
+        for i in range(rec3['nvar3d'])  :
             if DEBUG:
-                print '--- Read 3D variable #', i
-            # if DEBUG :
-            #     print
-            #     print '--- Read 3D variable # ', i
+                print('--- Read 3D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, data)
 
-
-        for i in range(nvar2d)  :
+        for i in range(rec3['nvar2d'])  :
             if DEBUG :
-            #     print
-                print '--- Read 2D variable #', i
+                print('--- Read 2D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, data)
 
     # # Check if we are at the end of file
@@ -332,39 +319,32 @@ def arinfopy(fInput, DEBUG):
     #         break
         
 
-
     #  Info output
-    print
-    print '--- ADSO/bin file info ---'
-    print 'File generator              : ', str(ident2)
-    print 'first deadline              : ', firstdl
-    # print 'first deadline              : ', ijozer, imozer, ianzer, ihezer, imizer, isezer 
-    print 'last deadline               : ', currentdl
-    # print 'Deadline frequency (s)      : ', (currentdl - firstdl).total_seconds() / necdis
-    print 'Deadline frequency (s)      : ', dtsecs
-    print '# of deadlines              : ', necdis
-    print '# of gridpoints (x, y, z)   : ', immai, jmmai, kmmai
-    print 'grid cell sizes (x, y)      :  %.3f    %.3f' % (dxmai, dymai)
-    print 'coord. of SW corner (metric):  %.3f    %.3f' % (xlso, ylso)
-    print 'coord. of SW corner (geo)   :  %.3f    %.3f' % (xlatso, ylatso)
-    print 'top of the domain           :  %.3f' % ztop
+    print('\n--- ADSO/bin file info ---')
+    print('File generator              :  {}'.format(ident2))
+    print('First deadline              :  {}'.format(firstdl))
+    print('Last deadline               :  {}'.format(currentdl))
+    print('Deadline frequency (s)      :  {}'.format(dtsecs))
+    print('# of deadlines              :  {}'.format(necdis))
+    print('# of gridpoints (x, y, z)   :  {}   {}   {}'.format(rec3['immai'],
+        rec3['jmmai'], rec3['kmmai']))
+    print('Grid cell sizes (x, y)      :  {:.3f}   {:.3f}'.format(dxmai,
+            dymai))
+    print('Coord. of SW corner (metric):  {:.3f}   {:>.3f}'.format(xlso, ylso))             
+    print('Coord. of SW corner (geo)   :  {:.3f}   {:.3f}'.format(xlatso,
+        ylatso))
+    print('Top of the domain           :  {:.3f}'.format(ztop))
+    print(('Levels                      :  ' + '{:.2f}  ' * len(sgrid)).
+            format(*sgrid))
+    print('nvar2d, nvar3d              :  {:d}    {:d}'.format(rec3['nvar2d'],
+        rec3['nvar3d']))
+    if rec3['nvar2d'] > 0 :
+        print(('2D variabels                :  ' + '{:s} ' * rec3['nvar2d']).
+                format(*nomvar2d))
+    if rec3['nvar3d'] > 0 :
+        print(('3D variables                :  ' + '{:s} ' * rec3['nvar3d']).
+                format(*nomvar3d))
 
-    sys.stdout.write('levels                      :  ')
-    for val in sgrid :
-        sys.stdout.write('%.1f  ' % val)
-    sys.stdout.write('\n')
-
-    print 'nvar2d, nvar3d              :  %i  %i' % (nvar2d, nvar3d)
-
-
-    if nvar2d > 0 :
-        print '2D variabels                :  %s' % '  '.join(map(str,nomvar2d))
-        # print '2D variables udm            :  %s' % ' '.join(map(str,univar2d))
-    if nvar3d > 0 :
-        print '3D variables                :  %s' % '  '.join(map(str,nomvar3d))
-        # print '3D variables udm            :  %s' % ' '.join(map(str,univar3d))
-
-    print
 
 
 

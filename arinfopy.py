@@ -56,16 +56,7 @@ class adsobin(object):
     def __readDeadlineBlockSize(self):
         # Read record 3 of 1st deadline
         __start = 32
-        __nStart, __binData = self.__readADSOChunk(__start, self.__data)
-        __num = struct.unpack('@27i', __binData)
-        __rec3 = {'ijozer': __num[0], 'imozer': __num[1], 'ianzer': __num[2],
-                'ihezer': __num[3], 'imizer': __num[4], 'isezer': __num[5],
-                'ijozei': __num[6], 'imozei': __num[7], 'ianzei': __num[8],
-                'ihezei': __num[9], 'imizei': __num[10], 'isezei': __num[11],
-                'immai': __num[12], 'jmmai': __num[13], 'kmmai': __num[14], 
-                'nreper': __num[15], 'nvar3d': __num[16], 'nvar2d': __num[17],
-                'nevt': __num[18], 'itmax': __num[19], 'nevtpr': __num[20],
-                'itmopro': __num[21], 'IINDEX': __num[22], 'IKSURF': __num[23]}
+        __rec3 = self.__readRecord3(__start)
         __pad = 8
         __int = 4
         __real = 4
@@ -89,6 +80,19 @@ class adsobin(object):
                 __nRec6 + __nRec7)
 
         return __nBytesDeadline
+
+    def __readRecord3(self, start):
+        __nStart, __binData = self.__readADSOChunk(start, self.__data)
+        __num = struct.unpack('@27i', __binData)
+        __rec3 = {'ijozer': __num[0], 'imozer': __num[1], 'ianzer': __num[2],
+                'ihezer': __num[3], 'imizer': __num[4], 'isezer': __num[5],
+                'ijozei': __num[6], 'imozei': __num[7], 'ianzei': __num[8],
+                'ihezei': __num[9], 'imizei': __num[10], 'isezei': __num[11],
+                'immai': __num[12], 'jmmai': __num[13], 'kmmai': __num[14], 
+                'nreper': __num[15], 'nvar3d': __num[16], 'nvar2d': __num[17],
+                'nevt': __num[18], 'itmax': __num[19], 'nevtpr': __num[20],
+                'itmopro': __num[21], 'IINDEX': __num[22], 'IKSURF': __num[23]}
+        return __rec3
 
 
     # Function to read from ADSO/BIN 
@@ -128,7 +132,6 @@ def arinfopyNew(fInput, debug):
 
     mData = adsobin(fInput)
     print('Number of deadlines: {}'.format(len(mData)))
-    print mData
 
 
 ###################

@@ -37,18 +37,103 @@ import struct
 import argparse
 from datetime import datetime, timedelta
 
-# Function to read from ADSO/BIN 
-#   fortran unformatted file add 4 bytes at the beginning and at the end
-#       of each chunk of data written
-# 
-#           to be moved to a separete file
-# 
-#   INPUT:  rStart      -> initial offset
-#           rData       -> binary data as read from input file
-# 
-#   OUTPUT: rEnd        -> final offest
-#           rBinData    -> binary object read to be parsed with struct.unpack
-# 
+class adsobin(object):
+
+    def __init__(self, filename):
+        with open(filename, 'rb') as f:
+            self.__data = f.read()
+
+
+    def __len__(self):
+        __nBytesDeadline = self.__readDeadlineBlockSize()
+        __remDeadlines = len(self.__data) % __nBytesDeadline
+        if __remDeadlines != 0:
+            raise
+        __nDeadlines = int(len(self.__data) / __nBytesDeadline)
+        return __nDeadlines
+
+
+    def __readDeadlineBlockSize(self):
+        # Read record 3 of 1st deadline
+        __start = 32
+        __nStart, __binData = self.__readADSOChunk(__start, self.__data)
+        __num = struct.unpack('@27i', __binData)
+        __rec3 = {'ijozer': __num[0], 'imozer': __num[1], 'ianzer': __num[2],
+                'ihezer': __num[3], 'imizer': __num[4], 'isezer': __num[5],
+                'ijozei': __num[6], 'imozei': __num[7], 'ianzei': __num[8],
+                'ihezei': __num[9], 'imizei': __num[10], 'isezei': __num[11],
+                'immai': __num[12], 'jmmai': __num[13], 'kmmai': __num[14], 
+                'nreper': __num[15], 'nvar3d': __num[16], 'nvar2d': __num[17],
+                'nevt': __num[18], 'itmax': __num[19], 'nevtpr': __num[20],
+                'itmopro': __num[21], 'IINDEX': __num[22], 'IKSURF': __num[23]}
+        __pad = 8
+        __int = 4
+        __real = 4
+        __nRec1 = __pad + 8
+        __nRec2 = __pad + 8
+        __nRec3 = __pad + 27 * __int
+        __nRec4 = __pad + (11 + __rec3['kmmai']) * __real
+        __nRec5 = __pad + (__rec3['nreper'] * 8 + 
+                           __rec3['nvar3d'] * (8 + 8) + 
+                           __rec3['nvar2d'] * (8 + 8))
+        if __rec3['nreper'] != 0:
+            __nRec6 = __pad + 3 * __rec3['nreper'] * __real
+        else: 
+            __nRec6 = 0
+        __nRec7 = (__rec3['nvar2d'] * (__pad + __real * __rec3['immai'] *
+                 __rec3['jmmai']) + 
+                 __rec3['nvar3d'] * (__pad + __real * __rec3['immai'] *
+                 __rec3['jmmai'] * __rec3['kmmai']))
+
+        __nBytesDeadline = (__nRec1 + __nRec2 + __nRec3 + __nRec4 + __nRec5 +
+                __nRec6 + __nRec7)
+
+        return __nBytesDeadline
+
+
+    # Function to read from ADSO/BIN 
+    #   fortran unformatted file add 4 bytes at the beginning and at the end
+    #       of each chunk of data written
+    # 
+    #           to be moved to a separete file
+    # 
+    #   INPUT:  rStart      -> initial offset
+    #           rData       -> binary data as read from input file
+    # 
+    #   OUTPUT: rEnd        -> final offest
+    #           rBinData    -> binary object read to be parsed with struct.unpack
+    # 
+    def __readADSOChunk(self, rStart, rData):
+        rDEBUG = False
+        if rDEBUG :
+            print
+            print'========================================================='
+            print'Read chunk of bytes from ADSO/BIN file.'
+            print'Length of bin data: ', len(rData)
+            print'Initial offset: ', rStart
+        rPad = 4
+        rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
+        rStart += rPad
+        rBinData = rData[rStart:rStart+rLength]
+        rEnd = rStart+rLength+rPad      # Final offest
+        if rDEBUG :
+            print'Bytes to be read: ', rLength
+            print"Final offset: ", rEnd
+            print'========================================================='
+            print
+        return [rEnd, rBinData]
+
+
+def arinfopyNew(fInput, debug):
+
+    mData = adsobin(fInput)
+    print('Number of deadlines: {}'.format(len(mData)))
+    print mData
+
+
+###################
+
+
 def readADSOChunk(rStart, rData):
     rDEBUG = False
     if rDEBUG :
@@ -67,10 +152,7 @@ def readADSOChunk(rStart, rData):
         print"Final offset: ", rEnd
         print'========================================================='
         print
-    return rEnd, rBinData
-
-
-
+    return [rEnd, rBinData]
 
 
 def arinfopy(fInput, DEBUG):
@@ -81,7 +163,7 @@ def arinfopy(fInput, DEBUG):
         os.system('python --version')
         os.system('which python')
 
-    with open(fInput, 'rb') as f :
+    with open(fInput, 'rb') as f:
         data = f.read()
     #f.close()
 
@@ -112,14 +194,20 @@ def arinfopy(fInput, DEBUG):
             print
             print '--- Read Record 1 ---'
 
-        start, binData = readADSOChunk(start,data)
+        start, binData = readADSOChunk(start, data)
         ident1 = struct.unpack('@8s',binData)[0].decode("utf-8")
+
+        if DEBUG :
+            print 'ident1 :', ident1
+
+        if DEBUG :
+            print
+            print '--- Read Record 2 ---'
 
         start, binData = readADSOChunk(start,data)
         ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
 
         if DEBUG :
-            print 'ident1 :', ident1
             print 'ident2 :', ident2
 
         
@@ -292,7 +380,6 @@ def arinfopy(fInput, DEBUG):
         if DEBUG:
             print('\n--- Read Record 6')
 
-
         # 
         # -----RECORD NUMBER 7 : 3D FIELDS----------------------------
         # 
@@ -306,12 +393,12 @@ def arinfopy(fInput, DEBUG):
         
         for i in range(rec3['nvar3d'])  :
             if DEBUG:
-                print('--- Read 3D variable # {}\n'.format(i))
+                print('Read 3D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, data)
 
         for i in range(rec3['nvar2d'])  :
             if DEBUG :
-                print('--- Read 2D variable # {}\n'.format(i))
+                print('Read 2D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, data)
 
     # # Check if we are at the end of file
@@ -357,4 +444,5 @@ if __name__ == '__main__':
             action="store_true")
     args = parser.parse_args()
     
-    arinfopy(args.inifile, args.verbose)
+    #arinfopy(args.inifile, args.verbose)
+    arinfopyNew(args.inifile, args.verbose)

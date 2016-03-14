@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # 
 ###############################################################################
 # 
@@ -35,6 +35,7 @@ import sys
 import os
 import struct
 import argparse
+import logging
 from datetime import datetime, timedelta
 
 class adsobin(object):
@@ -108,27 +109,20 @@ class adsobin(object):
     #           rBinData    -> binary object read to be parsed with struct.unpack
     # 
     def __readADSOChunk(self, rStart, rData):
-        rDEBUG = False
-        if rDEBUG :
-            print
-            print'========================================================='
-            print'Read chunk of bytes from ADSO/BIN file.'
-            print'Length of bin data: ', len(rData)
-            print'Initial offset: ', rStart
+        logger.debug('Read chunk of bytes from ADSO/BIN file.')
+        logger.debug('Length of bin data: {}'.format(len(rData)))
+        logger.debug('Initial offset: {}'.format(rStart))
         rPad = 4
         rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
         rStart += rPad
         rBinData = rData[rStart:rStart+rLength]
         rEnd = rStart+rLength+rPad      # Final offest
-        if rDEBUG :
-            print'Bytes to be read: ', rLength
-            print"Final offset: ", rEnd
-            print'========================================================='
-            print
+        logger.debug('Bytes to be read: {}'.format(rLength))
+        logger.debug('Final offset: {}'.format(rEnd))
         return [rEnd, rBinData]
 
 
-def arinfopyNew(fInput, debug):
+def arinfopyNew(fInput):
 
     mData = adsobin(fInput)
     print('Number of deadlines: {}'.format(len(mData)))
@@ -138,23 +132,16 @@ def arinfopyNew(fInput, debug):
 
 
 def readADSOChunk(rStart, rData):
-    rDEBUG = False
-    if rDEBUG :
-        print
-        print'========================================================='
-        print'Read chunk of bytes from ADSO/BIN file.'
-        print'Length of bin data: ', len(rData)
-        print'Initial offset: ', rStart
+    logger.debug('Read chunk of bytes from ADSO/BIN file.')
+    logger.debug('Length of bin data: {}'.format(len(rData)))
+    logger.debug('Initial offset: {}'.format(rStart))
     rPad = 4
     rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
     rStart += rPad
     rBinData = rData[rStart:rStart+rLength]
     rEnd = rStart+rLength+rPad      # Final offest
-    if rDEBUG :
-        print'Bytes to be read: ', rLength
-        print"Final offset: ", rEnd
-        print'========================================================='
-        print
+    logger.debug('Bytes to be read: {}'.format(rLength))
+    logger.debug('Final offset: {}'.format(rEnd))
     return [rEnd, rBinData]
 
 
@@ -180,10 +167,7 @@ def arinfopy(fInput, DEBUG):
         # Count number of deadlines
         necdis = necdis+1
 
-        if DEBUG :
-            print('\n-------------------')
-            print('Deadline # {} '.format(necdis))
-            print('-------------------')
+        logger.debug('Deadline # {} '.format(necdis))
                 
         # 
         # -----DECLARATION OF THE "BINAIRA" TYPE
@@ -193,25 +177,19 @@ def arinfopy(fInput, DEBUG):
         # 
         #                   character*8
         #                   character*8 code that generated the file
-        if DEBUG :
-            print
-            print '--- Read Record 1 ---'
+        logger.debug('--- Read Record 1 ---')
 
         start, binData = readADSOChunk(start, data)
         ident1 = struct.unpack('@8s',binData)[0].decode("utf-8")
 
-        if DEBUG :
-            print 'ident1 :', ident1
+        logger.debug('ident1 : {}'.format(ident1))
 
-        if DEBUG :
-            print
-            print '--- Read Record 2 ---'
+        logger.debug('--- Read Record 2 ---')
 
         start, binData = readADSOChunk(start,data)
         ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
-
-        if DEBUG :
-            print 'ident2 :', ident2
+        
+        logger.debug('ident2 : {}'.format(ident2))
 
         
         
@@ -237,9 +215,7 @@ def arinfopy(fInput, DEBUG):
         #       2 integers IINDEX, IKSURF
         #                      vertical addressing order of 3D arrays (=1)
         #       3 integers ignored
-        if DEBUG :
-            print
-            print '--- Read Record 3 ---'
+        logger.debug('--- Read Record 3 ---')
         
         start, binData = readADSOChunk(start, data)
         num = struct.unpack('@27i',binData)
@@ -272,13 +248,12 @@ def arinfopy(fInput, DEBUG):
         if necdis == 2:
             dtsecs = (currentdl - firstdl).seconds
         
-        if DEBUG :
-            print('firstdl   : {}'.format(firstdl))
-            print('currentdl : {}'.format(currentdl))
-            print('nvar3d    : {}'.format(rec3['nvar3d']))
-            print('nvar2d    : {}'.format(rec3['nvar2d']))
-            print('kmmai     : {}'.format(rec3['kmmai']))
-            print('nreper    : {}'.format(rec3['nreper']))
+        logger.debug('firstdl   : {}'.format(firstdl))
+        logger.debug('currentdl : {}'.format(currentdl))
+        logger.debug('nvar3d    : {}'.format(rec3['nvar3d']))
+        logger.debug('nvar2d    : {}'.format(rec3['nvar2d']))
+        logger.debug('kmmai     : {}'.format(rec3['kmmai']))
+        logger.debug('nreper    : {}'.format(rec3['nreper']))
 
         # 
         # -----RECORD NUMBER 4-------------------------------------
@@ -295,17 +270,14 @@ def arinfopy(fInput, DEBUG):
         #         4 real ignored
         #         1 real ZTOP
         #                 absolute heigh of domain top plane in meters
-        if DEBUG :
-            print
-            print'--- Read Record 4'
+        logger.debug('--- Read Record 4')
 
         start, binData = readADSOChunk(start, data)
 
         nReals = 11+rec3['kmmai']
 
         typedef = '@' + str(nReals) + 'f'
-        if DEBUG :
-            print 'typedef: ', typedef
+        logger.debug('typedef: {}'.format(typedef))
 
         fnum = struct.unpack(typedef, binData)
 
@@ -319,8 +291,7 @@ def arinfopy(fInput, DEBUG):
         ylatso = fnum[i+5]
         ztop = fnum[i+10]
 
-        if DEBUG:
-            print 'ztop :', ztop
+        logger.debug('ztop : {}'.format(ztop))
 
         # 
         # -----RECORD NUMBER 5 : CHARACTER ARRAYS-------------------
@@ -336,16 +307,13 @@ def arinfopy(fInput, DEBUG):
         #                       names of 2D variables
         #               NVAR2D character*8 UNIVAR2D
         #                       unit of meas of 2D variables
-        if DEBUG :
-            print
-            print '--- Read Record 5'
+        logger.debug('--- Read Record 5')
 
         start, binData = readADSOChunk(start, data)
 
         nStrings = rec3['nreper'] + 2 * rec3['nvar3d'] + 2 * rec3['nvar2d']
         typedef = '@' + str(nStrings*8) + 's'
-        if DEBUG :
-            print 'typedef: ', typedef
+        logger.debug('typedef: {}'.format(typedef))
 
         sStrings = struct.unpack(typedef, binData)
         # print(sStrings[0])
@@ -380,8 +348,7 @@ def arinfopy(fInput, DEBUG):
         # 
         #   3*NREPER REALS
         # 
-        if DEBUG:
-            print('\n--- Read Record 6')
+        logger.debug('\n--- Read Record 6')
 
         # 
         # -----RECORD NUMBER 7 : 3D FIELDS----------------------------
@@ -391,17 +358,14 @@ def arinfopy(fInput, DEBUG):
         # #               NVAR3D 3D arrays with variables on the 3D grid
         # #               orderd as indicated by NOMVAR3D names vector
         # #       
-        if DEBUG:
-            print('\n--- Read Record 7 (3D fields)')
+        logger.debug('\n--- Read Record 7 (3D fields)')
         
         for i in range(rec3['nvar3d'])  :
-            if DEBUG:
-                print('Read 3D variable # {}\n'.format(i))
+            logger.debug('Read 3D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, data)
 
         for i in range(rec3['nvar2d'])  :
-            if DEBUG :
-                print('Read 2D variable # {}\n'.format(i))
+            logger.debug('Read 2D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, data)
 
     # # Check if we are at the end of file
@@ -447,5 +411,23 @@ if __name__ == '__main__':
             action="store_true")
     args = parser.parse_args()
     
+    # Create Logger
+    logger = logging.getLogger('elisestat')
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    console.setFormatter(formatter)
+    logger.addHandler(console)
+#    flogname = 'elisestat_' + datetime.now().isoformat() + '.log'
+#    flog = logging.FileHandler(flogname)
+#    flog.setLevel(logging.INFO)
+#    flog.setFormatter(formatter)
+#    logger.addHandler(flog)
+    
     #arinfopy(args.inifile, args.verbose)
-    arinfopyNew(args.inifile, args.verbose)
+    arinfopyNew(args.inifile)

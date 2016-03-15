@@ -36,53 +36,94 @@ import argparse
 import logging
 from datetime import datetime, timedelta
 
+# Size of data type and data padding
+size = {'int': 4,
+        'real': 4,
+        'char8': 8,
+        'pad': (4 + 4)}
+
+
 class adsobin(object):
     '''Class to read data from ADSO/BIN file.'''
 
+
     def __init__(self, filename):
-        with open(filename, 'rb') as f:
+        ''' 
+        Consutctor: open and read ADSO/BIN file
+        '''
+        self.filename = filename
+        with open(self.filename, 'rb') as f:
             self.__data = f.read()
 
-
-    def __len__(self):
-        '''Get number of deadlines.'''
-        __nBytesDeadline = self.__readDeadlineBlockSize()
-        __remDeadlines = len(self.__data) % __nBytesDeadline
-        if __remDeadlines != 0:
-            raise
-        __nDeadlines = int(len(self.__data) / __nBytesDeadline)
-        return __nDeadlines
+        # Get the size of records and deadlne
+        self.size = self.getDeadlineBlockSize()
 
 
-    def __readDeadlineBlockSize(self):
-        # Read record 3 of 1st deadline
-        __start = 32
-        __rec3 = self.__readRecord3(__start)
-        __pad = 8
-        __int = 4
-        __real = 4
-        __nRec1 = __pad + 8
-        __nRec2 = __pad + 8
-        __nRec3 = __pad + 27 * __int
-        __nRec4 = __pad + (11 + __rec3['kmmai']) * __real
-        __nRec5 = __pad + (__rec3['nreper'] * 8 + 
-                           __rec3['nvar3d'] * (8 + 8) + 
-                           __rec3['nvar2d'] * (8 + 8))
-        if __rec3['nreper'] != 0:
-            __nRec6 = __pad + 3 * __rec3['nreper'] * __real
-        else: 
-            __nRec6 = 0
-        __nRec7 = (__rec3['nvar2d'] * (__pad + __real * __rec3['immai'] *
-                 __rec3['jmmai']) + 
-                 __rec3['nvar3d'] * (__pad + __real * __rec3['immai'] *
-                 __rec3['jmmai'] * __rec3['kmmai']))
+    def readRecord1(self, start = 0):
+        ''' 
+        Returns file header
 
-        __nBytesDeadline = (__nRec1 + __nRec2 + __nRec3 + __nRec4 + __nRec5 +
-                __nRec6 + __nRec7)
+        -----DECLARATION OF THE "BINAIRA" TYPE
+        Record 1 -> character*8
+        '''
+        logger.debug('--- Read Record 1 ---')
+#        start = 0
+        start, binData = self.__readADSOChunk(start, self.__data)
+        _ident1 = struct.unpack('@8s',binData)[0].decode("utf-8")
+        logger.debug('ident1 : {}'.format(_ident1))
+        return _ident1
 
-        return __nBytesDeadline
 
-    def __readRecord3(self, start):
+    def getVersion(self):
+        '''
+        Returns string with ADSO/BIN fileversion
+        '''
+        header = self.readRecord1()
+        if header == 'BBBBBBBB':
+            version = '0'
+        else:
+            version = header[-3:]
+        return version
+
+
+
+    def getGenerator(self, start = 16):
+        '''
+        Returns file generator
+
+        Record 2 -> character*8 code that generated the file
+        '''
+        logger.debug('--- Read Record 2 ---')
+        start, binData = readADSOChunk(start, self.__data)
+        _ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
+        logger.debug('ident2 : {}'.format(_ident2))
+        return _ident2
+
+
+
+    def readRecord3(self, start):
+        '''
+        Read record 3 of deadline.
+
+        -----RECORD NUMBER 3---------------------------------
+
+        27 integers (4 bytes each)
+               6 integers time frame
+               6 integers of first time frame of the file
+               3 integers immai, jmmai, kmmai 
+                               with num of horiz grid points in x, y and z dir
+               integer nreper
+                               number of reference points
+                               ignored in Spray 3.1 (it can be=0)
+               integer nvar3d
+                               number of 3D stored fields
+               integer nvar2d
+                               number of 2D stored fields
+               4 integers ignored
+               2 integers IINDEX, IKSURF
+                              vertical addressing order of 3D arrays (=1)
+               3 integers ignored
+        '''
         __nStart, __binData = self.__readADSOChunk(start, self.__data)
         __num = struct.unpack('@27i', __binData)
         __rec3 = {'ijozer': __num[0], 'imozer': __num[1], 'ianzer': __num[2],
@@ -94,6 +135,150 @@ class adsobin(object):
                 'nevt': __num[18], 'itmax': __num[19], 'nevtpr': __num[20],
                 'itmopro': __num[21], 'IINDEX': __num[22], 'IKSURF': __num[23]}
         return __rec3
+
+
+    def readRecord4(self, start, rec3):
+        '''
+        Read record 4 of deadline
+
+        -----RECORD NUMBER 4-------------------------------------
+
+        Record 4 -> 11+kmmai reals 
+                 kmmai real SGRID
+                         vertical terrain following coordinates vector
+                 2 real dxmai, dymai
+                         linear directions of horiz grid in meters
+                 2 real xlso, ylso
+                         x & y Cartesian coords of domain orig (km)
+                 2 real xlatso, ylonso
+                         lat lon of the origin     
+                 4 real ignored
+                 1 real ZTOP
+                         absolute heigh of domain top plane in meters
+        '''
+        start, binData = self.__readADSOChunk(start, self.__data)
+
+        nReals = 11 + rec3['kmmai']
+        typedef = '@' + str(nReals) + 'f'
+        fnum = struct.unpack(typedef, binData)
+        sgrid = fnum[0:rec3['kmmai']]
+        i = rec3['kmmai']
+        dxmai = fnum[i]
+        dymai = fnum[i+1]
+        xlso = fnum[i+2] 
+        ylso = fnum[i+3]
+        xlatso = fnum[i+4]
+        ylatso = fnum[i+5]
+        ztop = fnum[i+10]
+
+        rec4 = {'sgrid': sgrid,
+                'dxmai': dxmai,
+                'dymai': dymai,
+                'xlso': xlso,
+                'ylso': ylso,
+                'xlatso': xlatso,
+                'ylatso': ylatso,
+                'ztop': ztop}
+        return rec4
+                
+    
+    def readRecord5(self, start):
+        '''
+        Read record 5 of deadline
+
+        -----RECORD NUMBER 5 : CHARACTER ARRAYS-------------------
+        
+        Vector of character*8 strings
+                       NREPER character *8
+                               site name at ref point       
+                       NVAR3D charecter*8 NOMVAR3D
+                               names of 3D variables
+                       NVAR3D character*8 UNIVAR3D
+                               unit of meas of 3D variables
+                       NVAR2D character*8 NOMVAR2D
+                               names of 2D variables
+                       NVAR2D character*8 UNIVAR2D
+                               unit of meas of 2D variables
+        '''
+        pass
+
+
+    def readRecord6(self, start):
+        '''
+        Read record 6 of deadline
+
+        -----RECORD NUMBER 6 : KEY POINTS COORDINATES--------------
+         
+           3*NREPER REALS
+        '''
+        pass
+
+
+    def readRecord7(self, start):
+        '''
+        Read record 7 of deadline
+
+        -----RECORD NUMBER 7 : 3D FIELDS----------------------------
+
+               Record 5 to 5+NVAR3D-1
+                       NVAR3D 3D arrays with variables on the 3D grid
+                       orderd as indicated by NOMVAR3D names vector
+        '''
+        pass
+
+
+    def __len__(self):
+        '''
+        Get number of deadlines.
+        '''
+        remDeadlines = len(self.__data) % self.size['blockSize']
+        if remDeadlines != 0:
+            logger.debug('len(self.__data): {}'.format(len(self.__data)))
+            logger.debug('nBytesDeadline  : {}'.format(
+                self.size['blockSize']))
+            raise Exception('ADSOpy error.')
+        nDeadlines = int(len(self.__data) / self.size['blockSize'])
+        return nDeadlines
+
+
+    def getDeadlineBlockSize(self):
+        '''
+        Returns dictionary with the size of each record in bytes
+        and the size of the whole deadline in bytes.
+        '''
+        # Read record 3 of 1st deadline
+        rec3 = self.readRecord3(32)
+        
+        # Compute size of each block
+        nRec1 = size['char8'] + size['pad']
+        nRec2 = size['char8'] + size['pad']
+        nRec3 = 27 * size['int'] + size['pad']
+        nRec4 = (11 + rec3['kmmai']) * size['real'] + size['pad']
+        nRec5 = (rec3['nreper'] * size['char8'] +
+                 rec3['nvar3d'] * size['char8'] +
+                 rec3['nvar3d'] * size['char8'] +
+                 rec3['nvar2d'] * size['char8'] +
+                 rec3['nvar2d'] * size['char8']) + size['pad']
+        if rec3['nreper'] != 0:
+            nRec6 = 3 * rec3['nreper'] * size['real'] + size['pad']
+        else:
+            nRec6 = 0
+        nRec7 = (rec3['nvar3d'] * (size['pad'] + rec3['immai'] * rec3['jmmai'] 
+            * rec3['kmmai'] * size['real']) +
+            rec3['nvar2d'] * (size['pad'] + rec3['immai'] * rec3['jmmai'] *
+                size['real']))
+        
+        nBytesDeadline = (nRec1 + nRec2 + nRec3 + nRec4 + nRec5 + nRec6 +
+                nRec7)
+        deadlineBlock = {'rec1': nRec1,
+                         'rec2': nRec2,
+                         'rec3': nRec3,
+                         'rec4': nRec4,
+                         'rec5': nRec5,
+                         'rec6': nRec6,
+                         'rec7': nRec7,
+                         'blockSize': nBytesDeadline}
+        return deadlineBlock
 
 
     def __readADSOChunk(self, rStart, rData):
@@ -123,11 +308,73 @@ class adsobin(object):
         return [rEnd, rBinData]
 
 
-def arinfopyNew(fInput):
+    def summary(self):
+        '''
+        Print out summary information about ADSO/BIN file.
+        '''
+        rec3 = self.readRecord3(self.size['rec1'] + self.size['rec2'])
+        rec4 = self.readRecord4(self.size['rec1'] + self.size['rec2']
+                + self.size['rec3'], rec3)
+        rec3final = self.readRecord3((len(self) - 1) * self.size['blockSize'] + 
+                self.size['rec1'] + self.size['rec2'])
 
-    mData = adsobin(fInput)
-    print('Number of deadlines: {}'.format(len(mData)))
+        if rec3final['ianzer'] < 1000:
+            rec3final['ianzer'] += 2000
+        if rec3final['ianzei'] < 1000:
+            rec3final['ianzei'] += 2000
+        
+        firstdl = datetime(rec3final['ianzei'], 
+                rec3final['imozei'], 
+                rec3final['ijozei'], 
+                rec3final['ihezei'] % 24, 
+                rec3final['imizei'],
+                rec3final['isezei'])
+        if rec3final['ihezei'] == 24:
+            firstdl = firstdl + timedelta(days = 1)
+        lastdl = datetime(rec3final['ianzer'], 
+                rec3final['imozer'], 
+                rec3final['ijozer'], 
+                rec3final['ihezer'] % 24, 
+                rec3final['imizer'], 
+                rec3final['isezer'])
+        if rec3final['ihezer'] == 24:
+            lastdl = lastdl + timedelta(days = 1)
+        dtsecs = (lastdl - firstdl).total_seconds() / len(self)
 
+        print('\n--- ADSO/bin file info ---')
+        print('Input archive               : {}'.format(
+            os.path.basename(self.filename)))
+        print('Version                     : {}'.format(self.getVersion()))
+        print('File generator              : {}'.format(self.getGenerator()))
+        print('First deadline              :  {}'.format(firstdl.isoformat()))
+        print('Last deadline               :  {}'.format(lastdl.isoformat()))
+        print('Deadline frequency (s)      :  {}'.format(dtsecs))
+        print('# of deadlines              : {}'.format(len(self)))
+        print('# of gridpoints (x, y, z)   : {}   {}   {}'.format(
+            rec3['immai'], rec3['jmmai'], rec3['kmmai']))
+        print('Grid cell sizes (x, y)      : {:.3f} {:.3f}'.format(
+            rec4['dxmai'], rec4['dymai']))
+        print('Coord. of SW corner (metric):  {:.3f} {:>.3f}'.format(
+            rec4['xlso'], rec4['ylso']))             
+        print('Coord. of SW corner (geo)   :  {:.3f}   {:.3f}'.format(
+            rec4['xlatso'], rec4['ylatso']))
+        print('Top of the domain           :  {:.3f}'.format(rec4['ztop']))
+#        print(('Levels                      :  ' + '{:.2f}  ' * 
+#            len(rec4['sgrid'])).format(rec4['sgrid']))
+#        print('nvar2d, nvar3d              :  {:d}    {:d}'.format(
+#            rec3['nvar2d'], rec3['nvar3d']))
+#        if rec3['nvar2d'] > 0 :
+#            print(('2D variabels                :  ' + '{:s} ' * 
+#                rec3['nvar2d']).  format(*nomvar2d))
+#        if rec3['nvar3d'] > 0 :
+#            print(('3D variables                :  ' + '{:s} ' * 
+#                rec3['nvar3d']).  format(*nomvar3d))
+
+        rec3 = self.readRecord3(32 + self.size['blockSize'])
+        logger.debug('Size from record 2: {} {} {}.'.format(rec3['immai'],
+            rec3['jmmai'], rec3['kmmai']))
+    
+        
 
 ###################
 
@@ -194,9 +441,6 @@ def arinfopy(fInput, DEBUG):
 
         
         
-        # 
-        #   Blocks for all the time frames
-        # 
         # 
         # -----RECORD NUMBER 3---------------------------------
         # 
@@ -430,5 +674,10 @@ if __name__ == '__main__':
 #    flog.setFormatter(formatter)
 #    logger.addHandler(flog)
     
-    #arinfopy(args.inifile, args.verbose)
-    arinfopyNew(args.inifile)
+#    arinfopy(args.inifile, args.verbose)
+#    arinfopyNew(args.inifile)
+
+    mData = adsobin(args.inifile)
+#    print('Number of deadlines: {}'.format(len(mData)))
+    mData.summary()
+

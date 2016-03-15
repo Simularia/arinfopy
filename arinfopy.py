@@ -27,10 +27,8 @@
 # info@simularia.it
 # 
 ############################################################################### 
-#
-#   2015-11-03 Giuseppe Carlino Simularia s.r.l
-#
-############################################################################### 
+
+
 import sys
 import os
 import struct
@@ -39,6 +37,7 @@ import logging
 from datetime import datetime, timedelta
 
 class adsobin(object):
+    '''Class to read data from ADSO/BIN file.'''
 
     def __init__(self, filename):
         with open(filename, 'rb') as f:
@@ -46,6 +45,7 @@ class adsobin(object):
 
 
     def __len__(self):
+        '''Get number of deadlines.'''
         __nBytesDeadline = self.__readDeadlineBlockSize()
         __remDeadlines = len(self.__data) % __nBytesDeadline
         if __remDeadlines != 0:
@@ -96,19 +96,20 @@ class adsobin(object):
         return __rec3
 
 
-    # Function to read from ADSO/BIN 
-    #   fortran unformatted file add 4 bytes at the beginning and at the end
-    #       of each chunk of data written
-    # 
-    #           to be moved to a separete file
-    # 
-    #   INPUT:  rStart      -> initial offset
-    #           rData       -> binary data as read from input file
-    # 
-    #   OUTPUT: rEnd        -> final offest
-    #           rBinData    -> binary object read to be parsed with struct.unpack
-    # 
     def __readADSOChunk(self, rStart, rData):
+        """
+        Function to read from ADSO/BIN 
+        Note: Fortran unformatted file add 4 bytes at the beginning and at the
+        end of each chunk of data written
+
+        INPUT:  rStart      -> initial offset
+                rData       -> binary data as read from input file
+
+        OUTPUT: rEnd        -> final offest
+                rBinData    -> binary object read to be parsed with
+                               struct.unpack
+        """
+
         logger.debug('Read chunk of bytes from ADSO/BIN file.')
         logger.debug('Length of bin data: {}'.format(len(rData)))
         logger.debug('Initial offset: {}'.format(rStart))

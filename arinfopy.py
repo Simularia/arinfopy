@@ -113,7 +113,7 @@ class adsobin(object):
         '''
         logger.debug('--- Read Record 2 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec2']
-        start, binData = readADSOChunk(start, self.__data)
+        start, binData = self.__readADSOChunk(start, self.__data)
         _ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
         logger.debug('ident2 : {}'.format(_ident2))
         return _ident2

@@ -84,7 +84,7 @@ class adsobin(object):
         Record 1 -> character*8
         '''
         logger.debug('--- Read Record 1 ---')
-        start = (deadline - 1) + self.size['blockSize'] + self.offset['rec1']
+        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec1']
         start, binData = self.__readADSOChunk(start, self.__data)
         _ident1 = struct.unpack('@8s',binData)[0].decode("utf-8")
         logger.debug('ident1 : {}'.format(_ident1))
@@ -388,33 +388,31 @@ class adsobin(object):
         '''
         Print out summary information about ADSO/BIN file.
         '''
-        # Read rec3, rec4, rec5 of first deadline
-        rec3 = self.getRecord3(1)
-        rec4 = self.getRecord4(1)
-        rec5 = self.getRecord5(1)
-        # Read rec3 of last deadline
-        rec3final = self.getRecord3(len(self))
+        # Read rec3, rec4, rec5 of last deadline
+        rec3 = self.getRecord3(len(self))
+        rec4 = self.getRecord4(len(self))
+        rec5 = self.getRecord5(len(self))
 
-        if rec3final['ianzer'] < 1000:
-            rec3final['ianzer'] += 2000
-        if rec3final['ianzei'] < 1000:
-            rec3final['ianzei'] += 2000
+        if rec3['ianzer'] < 1000:
+            rec3['ianzer'] += 2000
+        if rec3['ianzei'] < 1000:
+            rec3['ianzei'] += 2000
         
-        firstdl = datetime(rec3final['ianzei'], 
-                rec3final['imozei'], 
-                rec3final['ijozei'], 
-                rec3final['ihezei'] % 24, 
-                rec3final['imizei'],
-                rec3final['isezei'])
-        if rec3final['ihezei'] == 24:
+        firstdl = datetime(rec3['ianzei'], 
+                rec3['imozei'], 
+                rec3['ijozei'], 
+                rec3['ihezei'] % 24, 
+                rec3['imizei'],
+                rec3['isezei'])
+        if rec3['ihezei'] == 24:
             firstdl = firstdl + timedelta(days = 1)
-        lastdl = datetime(rec3final['ianzer'], 
-                rec3final['imozer'], 
-                rec3final['ijozer'], 
-                rec3final['ihezer'] % 24, 
-                rec3final['imizer'], 
-                rec3final['isezer'])
-        if rec3final['ihezer'] == 24:
+        lastdl = datetime(rec3['ianzer'], 
+                rec3['imozer'], 
+                rec3['ijozer'], 
+                rec3['ihezer'] % 24, 
+                rec3['imizer'], 
+                rec3['isezer'])
+        if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days = 1)
         dtsecs = (lastdl - firstdl).total_seconds() / len(self)
 

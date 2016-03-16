@@ -159,6 +159,11 @@ class adsobin(object):
                 'nreper': __num[15], 'nvar3d': __num[16], 'nvar2d': __num[17],
                 'nevt': __num[18], 'itmax': __num[19], 'nevtpr': __num[20],
                 'itmopro': __num[21], 'IINDEX': __num[22], 'IKSURF': __num[23]}
+        if __rec3['ianzer'] < 1000:
+            __rec3['ianzer'] += 2000
+        if __rec3['ianzei'] < 1000:
+            __rec3['ianzei'] += 2000
+
         return __rec3
 
 
@@ -461,11 +466,6 @@ class adsobin(object):
         rec4 = self.getRecord4(len(self))
         rec5 = self.getRecord5(len(self))
 
-        if rec3['ianzer'] < 1000:
-            rec3['ianzer'] += 2000
-        if rec3['ianzei'] < 1000:
-            rec3['ianzei'] += 2000
-        
         firstdl = datetime(rec3['ianzei'], 
                 rec3['imozei'], 
                 rec3['ijozei'], 

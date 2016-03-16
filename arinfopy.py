@@ -384,6 +384,27 @@ class adsobin(object):
         return [rEnd, rBinData]
 
 
+    def deadlines(self):
+        '''
+        Print out list of deadlines in ADSO/BIN file.
+        '''
+        print('\n--- ADSO/bin file info ---')
+        for nd in range(len(self)):
+            rec3 = self.getRecord3(nd + 1)
+            dtdeadline = datetime(rec3['ianzer'], 
+                    rec3['imozer'], 
+                    rec3['ijozer'], 
+                    rec3['ihezer'] % 24, 
+                    rec3['imizer'],
+                    rec3['isezer'])
+            if rec3['ihezer'] == 24:
+                dtdeadline = dtdeadline + timedelta(days = 1)
+            print('{} {:>3d} {}'.format(
+                os.path.basename(self.filename),
+                nd + 1,
+                dtdeadline.strftime('%d/%m/%Y h %H:%M:%S')))
+
+
     def summary(self):
         '''
         Print out summary information about ADSO/BIN file.
@@ -450,6 +471,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description =
             'arinfopy parser for ADSO/bin files.')
     parser.add_argument('inifile', help = 'File to be parsed')
+    parser.add_argument('-minmax', 
+            help = "Show min/max values for each deadline",
+            action = "store_true")
+    parser.add_argument('-deadlines', 
+            help = "Show deadlines",
+            action = "store_true")
     parser.add_argument('-v', '--verbose',
             help = 'Increse output verbosity.',
             action="store_true")
@@ -474,5 +501,9 @@ if __name__ == '__main__':
 #    logger.addHandler(flog)
 
     mData = adsobin(args.inifile)
-    mData.summary()
-
+    if args.deadlines:
+        mData.deadlines()
+    elif args.minmax:
+        pass
+    else:
+        mData.summary()

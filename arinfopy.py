@@ -76,7 +76,7 @@ class adsobin(object):
                 }
 
 
-    def getRecord1(self, start):
+    def getRecord1(self, deadline):
         ''' 
         Returns file header
 
@@ -84,7 +84,7 @@ class adsobin(object):
         Record 1 -> character*8
         '''
         logger.debug('--- Read Record 1 ---')
-#        start = 0
+        start = (deadline - 1) + self.size['blockSize'] + self.offset['rec1']
         start, binData = self.__readADSOChunk(start, self.__data)
         _ident1 = struct.unpack('@8s',binData)[0].decode("utf-8")
         logger.debug('ident1 : {}'.format(_ident1))
@@ -95,7 +95,8 @@ class adsobin(object):
         '''
         Returns string with ADSO/BIN fileversion
         '''
-        header = self.getRecord1(self.offset['rec1'])
+        # Read record 1 of first deadline
+        header = self.getRecord1(1)
         if header == 'BBBBBBBB':
             version = '0'
         else:
@@ -104,13 +105,14 @@ class adsobin(object):
 
 
 
-    def getRecord2(self, start = 16):
+    def getRecord2(self, deadline):
         '''
         Returns file generator
 
         Record 2 -> character*8 code that generated the file
         '''
         logger.debug('--- Read Record 2 ---')
+        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec2']
         start, binData = readADSOChunk(start, self.__data)
         _ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
         logger.debug('ident2 : {}'.format(_ident2))
@@ -118,7 +120,7 @@ class adsobin(object):
 
 
 
-    def getRecord3(self, start):
+    def getRecord3(self, deadline = 1, offset = None):
         '''
         Read record 3 of deadline.
 
@@ -142,6 +144,11 @@ class adsobin(object):
                3 integers ignored
         '''
         logger.debug('--- Read Record 3 ---')
+        if offset != None:
+            start = offset
+        else:
+            start = (deadline - 1) * self.size['blockSize'] + \
+                self.offset['rec3']
         __nStart, __binData = self.__readADSOChunk(start, self.__data)
         __num = struct.unpack('@27i', __binData)
         __rec3 = {'ijozer': __num[0], 'imozer': __num[1], 'ianzer': __num[2],
@@ -155,7 +162,7 @@ class adsobin(object):
         return __rec3
 
 
-    def getRecord4(self, start, rec3):
+    def getRecord4(self, deadline):
         '''
         Read record 4 of deadline
 
@@ -175,8 +182,10 @@ class adsobin(object):
                          absolute heigh of domain top plane in meters
         '''
         logger.debug('--- Read Record 4 ---')
+        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec4']
         start, binData = self.__readADSOChunk(start, self.__data)
 
+        rec3 = self.getRecord3(deadline)
         nReals = 11 + rec3['kmmai']
         typedef = '@' + str(nReals) + 'f'
         fnum = struct.unpack(typedef, binData)
@@ -201,7 +210,7 @@ class adsobin(object):
         return rec4
                 
     
-    def getRecord5(self, start, rec3):
+    def getRecord5(self, deadline):
         '''
         Read record 5 of deadline
 
@@ -220,9 +229,10 @@ class adsobin(object):
                                unit of meas of 2D variables
         '''
         logger.debug('--- Read Record 5 ---')
-
+        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec5']
         start, binData = self.__readADSOChunk(start, self.__data)
 
+        rec3 = self.getRecord3(deadline)
         nStrings = rec3['nreper'] + 2 * rec3['nvar3d'] + 2 * rec3['nvar2d']
         typedef = '@' + str(nStrings * size['char8']) + 's'
         logger.debug('typedef: {}'.format(typedef))
@@ -271,7 +281,7 @@ class adsobin(object):
         pass
 
 
-    def getRecord7(self, start, rec3):
+    def getRecord7(self, deadline):
         '''
         Read record 7 of deadline
 
@@ -282,6 +292,8 @@ class adsobin(object):
                        orderd as indicated by NOMVAR3D names vector
         '''
         logger.debug('--- Read Record 7 ---')
+        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
+        rec3 = self.getRecord3(deadlne)
         for i in range(rec3['nvar3d'])  :
             logger.debug('Read 3D variable # {}\n'.format(i))
             start, binData = readADSOChunk(start, self.__data)
@@ -311,7 +323,7 @@ class adsobin(object):
         and the size of the whole deadline in bytes.
         '''
         # Read record 3 of 1st deadline
-        rec3 = self.getRecord3(32)
+        rec3 = self.getRecord3(offset = 32)
         
         # Compute size of each block
         nRec1 = size['char8'] + size['pad']
@@ -376,11 +388,12 @@ class adsobin(object):
         '''
         Print out summary information about ADSO/BIN file.
         '''
-        rec3 = self.getRecord3(self.offset['rec3'])
-        rec4 = self.getRecord4(self.offset['rec4'], rec3)
-        rec5 = self.getRecord5(self.offset['rec5'], rec3)
-        rec3final = self.getRecord3((len(self) - 1) * self.size['blockSize'] + 
-                self.offset['rec3'])
+        # Read rec3, rec4, rec5 of first deadline
+        rec3 = self.getRecord3(1)
+        rec4 = self.getRecord4(1)
+        rec5 = self.getRecord5(1)
+        # Read rec3 of last deadline
+        rec3final = self.getRecord3(len(self))
 
         if rec3final['ianzer'] < 1000:
             rec3final['ianzer'] += 2000
@@ -409,7 +422,7 @@ class adsobin(object):
         print('Input archive               : {}'.format(
             os.path.basename(self.filename)))
         print('Version                     : {}'.format(self.getVersion()))
-        print('File generator              : {}'.format(self.getRecord2()))
+        print('File generator              : {}'.format(self.getRecord2(1)))
         print('First deadline              : {}'.format(firstdl.isoformat()))
         print('Last deadline               : {}'.format(lastdl.isoformat()))
         print('Deadline frequency (s)      : {}'.format(dtsecs))
@@ -434,7 +447,7 @@ class adsobin(object):
             print('3D variables                : ' + ('{:<s} ' * 
                 rec3['nvar3d']).format(*rec5['nomvar3d']))
 
-        rec3 = self.getRecord3(self.offset['rec3'] + self.size['blockSize'])
+        rec3 = self.getRecord3(2)
         logger.debug('Size from record 2: {} {} {}.'.format(rec3['immai'],
             rec3['jmmai'], rec3['kmmai']))
     

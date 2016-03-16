@@ -293,15 +293,24 @@ class adsobin(object):
         '''
         logger.debug('--- Read Record 7 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
-        rec3 = self.getRecord3(deadlne)
-        for i in range(rec3['nvar3d'])  :
-            logger.debug('Read 3D variable # {}\n'.format(i))
-            start, binData = readADSOChunk(start, self.__data)
+        rec3 = self.getRecord3(deadline)
+        rec5 = self.getRecord5(deadline)
+        rec7 = {}
+        for i, name in enumerate(rec5['nomvar3d']):
+            logger.debug('Read 3D variable # {}'.format(i))
+            start, binData = self.__readADSOChunk(start, self.__data)
+            nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
+            typedef = '@' + str(nReals) + 'f'
+            rec7['%s' % name] = struct.unpack(typedef, binData)
 
-        for i in range(rec3['nvar2d'])  :
-            logger.debug('Read 2D variable # {}\n'.format(i))
-            start, binData = readADSOChunk(start, self.__data)
+        for i, name in enumerate(rec5['nomvar2d']):
+            logger.debug('Read 2D variable # {}'.format(i))
+            start, binData = self.__readADSOChunk(start, self.__data)
+            nReals = rec3['immai'] * rec3['jmmai']
+            typedef = '@' + str(nReals) + 'f'
+            rec7['%s' % name] = struct.unpack(typedef, binData)
 
+        return rec7
 
     def __len__(self):
         '''
@@ -404,6 +413,44 @@ class adsobin(object):
                 nd + 1,
                 dtdeadline.strftime('%d/%m/%Y h %H:%M:%S')))
 
+    def minmax(self):
+        '''
+        Print out min/max values for each deadline in ADSO/BIN file.
+        '''
+        print('\n--- ADSO/bin file info ---')
+        for nd in range(len(self)):
+            rec3 = self.getRecord3(nd + 1)
+            rec5 = self.getRecord5(nd + 1)
+            rec7 = self.getRecord7(nd + 1)
+            dtdeadline = datetime(rec3['ianzer'], 
+                    rec3['imozer'], 
+                    rec3['ijozer'], 
+                    rec3['ihezer'] % 24, 
+                    rec3['imizer'],
+                    rec3['isezer'])
+            if rec3['ihezer'] == 24:
+                dtdeadline = dtdeadline + timedelta(days = 1)
+            print('-' * 70)
+            print('Fields read at deadline # {:>3d}: {}'.format(nd + 1,
+                dtdeadline.strftime('%d/%m/%Y %H:%M:%S')))
+            print('-' * 70)
+            for n3d, name in enumerate(rec5['nomvar3d']):
+                print(('3D # {:>3d}: {:>10s}  min = {:12.4f} max = {:12.4f} ' + 
+                        ' [{:s}])').
+                        format(n3d + 1, 
+                            name.strip(), 
+                            min(rec7[name]),
+                            max(rec7[name]),
+                            rec5['univar3d'][n3d].strip()))
+            for n2d, name in enumerate(rec5['nomvar2d']):
+                print(('2D # {:>3d}: {:>10s}  min = {:12.4f} max = {:12.4f} ' +
+                        ' [{:s}]').
+                        format(n2d + 1, 
+                            name.strip(), 
+                            min(rec7[name]),
+                            max(rec7[name]),
+                            rec5['univar2d'][n2d].strip()))
+
 
     def summary(self):
         '''
@@ -504,6 +551,6 @@ if __name__ == '__main__':
     if args.deadlines:
         mData.deadlines()
     elif args.minmax:
-        pass
+        mData.minmax()
     else:
         mData.summary()

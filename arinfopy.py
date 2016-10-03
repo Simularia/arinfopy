@@ -1,32 +1,32 @@
 #!/usr/bin/env python
-# 
+#
 ###############################################################################
-# 
+#
 # arinfopy parser for ADSO/bin files.
 # Copyright (C) 2013 by Giuseppe Carlino (Simularia s.r.l.) g.carlino@simularia.it
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-# 
+#
 #
 # Simularia S.r.l.
 # via Principe Tommaso 39
 # Torino, Italy
 # www.simularia.it
 # info@simularia.it
-# 
-############################################################################### 
+#
+###############################################################################
 
 
 import sys
@@ -46,9 +46,10 @@ size = {'int': 4,
 class adsobin(object):
     '''Class to read data from ADSO/BIN file.'''
 
+    logger = logging.getLogger(__name__)
 
     def __init__(self, filename):
-        ''' 
+        '''
         Consutctor: open and read ADSO/BIN file
         '''
         self.filename = filename
@@ -63,7 +64,7 @@ class adsobin(object):
         self.offset = {
                 'rec1': 0,
                 'rec2': self.size['rec1'],
-                'rec3': (self.size['rec1'] + self.size['rec2']), 
+                'rec3': (self.size['rec1'] + self.size['rec2']),
                 'rec4': (self.size['rec1'] + self.size['rec2'] +
                     self.size['rec3']),
                 'rec5': (self.size['rec1'] + self.size['rec2'] +
@@ -77,7 +78,7 @@ class adsobin(object):
 
 
     def getRecord1(self, deadline):
-        ''' 
+        '''
         Returns file header
 
         -----DECLARATION OF THE "BINAIRA" TYPE
@@ -129,7 +130,7 @@ class adsobin(object):
         27 integers (4 bytes each)
                6 integers time frame
                6 integers of first time frame of the file
-               3 integers immai, jmmai, kmmai 
+               3 integers immai, jmmai, kmmai
                                with num of horiz grid points in x, y and z dir
                integer nreper
                                number of reference points
@@ -155,7 +156,7 @@ class adsobin(object):
                 'ihezer': __num[3], 'imizer': __num[4], 'isezer': __num[5],
                 'ijozei': __num[6], 'imozei': __num[7], 'ianzei': __num[8],
                 'ihezei': __num[9], 'imizei': __num[10], 'isezei': __num[11],
-                'immai': __num[12], 'jmmai': __num[13], 'kmmai': __num[14], 
+                'immai': __num[12], 'jmmai': __num[13], 'kmmai': __num[14],
                 'nreper': __num[15], 'nvar3d': __num[16], 'nvar2d': __num[17],
                 'nevt': __num[18], 'itmax': __num[19], 'nevtpr': __num[20],
                 'itmopro': __num[21], 'IINDEX': __num[22], 'IKSURF': __num[23]}
@@ -173,7 +174,7 @@ class adsobin(object):
 
         -----RECORD NUMBER 4-------------------------------------
 
-        Record 4 -> 11+kmmai reals 
+        Record 4 -> 11+kmmai reals
                  kmmai real SGRID
                          vertical terrain following coordinates vector
                  2 real dxmai, dymai
@@ -181,7 +182,7 @@ class adsobin(object):
                  2 real xlso, ylso
                          x & y Cartesian coords of domain orig (km)
                  2 real xlatso, ylonso
-                         lat lon of the origin     
+                         lat lon of the origin
                  4 real ignored
                  1 real ZTOP
                          absolute heigh of domain top plane in meters
@@ -198,7 +199,7 @@ class adsobin(object):
         i = rec3['kmmai']
         dxmai = fnum[i]
         dymai = fnum[i+1]
-        xlso = fnum[i+2] 
+        xlso = fnum[i+2]
         ylso = fnum[i+3]
         xlatso = fnum[i+4]
         ylatso = fnum[i+5]
@@ -213,17 +214,17 @@ class adsobin(object):
                 'ylatso': ylatso,
                 'ztop': ztop}
         return rec4
-                
-    
+
+
     def getRecord5(self, deadline):
         '''
         Read record 5 of deadline
 
         -----RECORD NUMBER 5 : CHARACTER ARRAYS-------------------
-        
+
         Vector of character*8 strings
                        NREPER character *8
-                               site name at ref point       
+                               site name at ref point
                        NVAR3D charecter*8 NOMVAR3D
                                names of 3D variables
                        NVAR3D character*8 UNIVAR3D
@@ -279,7 +280,7 @@ class adsobin(object):
         Read record 6 of deadline
 
         -----RECORD NUMBER 6 : KEY POINTS COORDINATES--------------
-         
+
            3*NREPER REALS
         '''
         logger.debug('--- Read Record 6 ---')
@@ -338,7 +339,7 @@ class adsobin(object):
         '''
         # Read record 3 of 1st deadline
         rec3 = self.getRecord3(offset = 32)
-        
+
         # Compute size of each block
         nRec1 = size['char8'] + size['pad']
         nRec2 = size['char8'] + size['pad']
@@ -353,11 +354,11 @@ class adsobin(object):
             nRec6 = 3 * rec3['nreper'] * size['real'] + size['pad']
         else:
             nRec6 = 0
-        nRec7 = (rec3['nvar3d'] * (size['pad'] + rec3['immai'] * rec3['jmmai'] 
+        nRec7 = (rec3['nvar3d'] * (size['pad'] + rec3['immai'] * rec3['jmmai']
             * rec3['kmmai'] * size['real']) +
             rec3['nvar2d'] * (size['pad'] + rec3['immai'] * rec3['jmmai'] *
                 size['real']))
-        
+
         nBytesDeadline = (nRec1 + nRec2 + nRec3 + nRec4 + nRec5 + nRec6 +
                 nRec7)
         deadlineBlock = {'rec1': nRec1,
@@ -373,7 +374,7 @@ class adsobin(object):
 
     def __readADSOChunk(self, rStart, rData):
         """
-        Function to read from ADSO/BIN 
+        Function to read from ADSO/BIN
         Note: Fortran unformatted file add 4 bytes at the beginning and at the
         end of each chunk of data written
 
@@ -405,10 +406,10 @@ class adsobin(object):
         print('\n--- ADSO/bin file info ---')
         for nd in range(len(self)):
             rec3 = self.getRecord3(nd + 1)
-            dtdeadline = datetime(rec3['ianzer'], 
-                    rec3['imozer'], 
-                    rec3['ijozer'], 
-                    rec3['ihezer'] % 24, 
+            dtdeadline = datetime(rec3['ianzer'],
+                    rec3['imozer'],
+                    rec3['ijozer'],
+                    rec3['ihezer'] % 24,
                     rec3['imizer'],
                     rec3['isezer'])
             if rec3['ihezer'] == 24:
@@ -427,10 +428,10 @@ class adsobin(object):
             rec3 = self.getRecord3(nd + 1)
             rec5 = self.getRecord5(nd + 1)
             rec7 = self.getRecord7(nd + 1)
-            dtdeadline = datetime(rec3['ianzer'], 
-                    rec3['imozer'], 
-                    rec3['ijozer'], 
-                    rec3['ihezer'] % 24, 
+            dtdeadline = datetime(rec3['ianzer'],
+                    rec3['imozer'],
+                    rec3['ijozer'],
+                    rec3['ihezer'] % 24,
                     rec3['imizer'],
                     rec3['isezer'])
             if rec3['ihezer'] == 24:
@@ -440,18 +441,18 @@ class adsobin(object):
                 dtdeadline.strftime('%d/%m/%Y %H:%M:%S')))
             print('-' * 70)
             for n3d, name in enumerate(rec5['nomvar3d']):
-                print(('3D # {:>3d}: {:>10s}  min = {:12.4f} max = {:12.4f} ' + 
+                print(('3D # {:>3d}: {:>10s}  min = {:12.4f} max = {:12.4f} ' +
                         ' [{:s}])').
-                        format(n3d + 1, 
-                            name.strip(), 
+                        format(n3d + 1,
+                            name.strip(),
                             min(rec7[name]),
                             max(rec7[name]),
                             rec5['univar3d'][n3d].strip()))
             for n2d, name in enumerate(rec5['nomvar2d']):
                 print(('2D # {:>3d}: {:>10s}  min = {:12.4f} max = {:12.4f} ' +
                         ' [{:s}]').
-                        format(n2d + 1, 
-                            name.strip(), 
+                        format(n2d + 1,
+                            name.strip(),
                             min(rec7[name]),
                             max(rec7[name]),
                             rec5['univar2d'][n2d].strip()))
@@ -466,19 +467,19 @@ class adsobin(object):
         rec4 = self.getRecord4(len(self))
         rec5 = self.getRecord5(len(self))
 
-        firstdl = datetime(rec3['ianzei'], 
-                rec3['imozei'], 
-                rec3['ijozei'], 
-                rec3['ihezei'] % 24, 
+        firstdl = datetime(rec3['ianzei'],
+                rec3['imozei'],
+                rec3['ijozei'],
+                rec3['ihezei'] % 24,
                 rec3['imizei'],
                 rec3['isezei'])
         if rec3['ihezei'] == 24:
             firstdl = firstdl + timedelta(days = 1)
-        lastdl = datetime(rec3['ianzer'], 
-                rec3['imozer'], 
-                rec3['ijozer'], 
-                rec3['ihezer'] % 24, 
-                rec3['imizer'], 
+        lastdl = datetime(rec3['ianzer'],
+                rec3['imozer'],
+                rec3['ijozer'],
+                rec3['ihezer'] % 24,
+                rec3['imizer'],
                 rec3['isezer'])
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days = 1)
@@ -498,7 +499,7 @@ class adsobin(object):
         print('Grid cell sizes (x, y)      : {:.3f} {:.3f}'.format(
             rec4['dxmai'], rec4['dymai']))
         print('Coord. of SW corner (metric): {:.3f}   {:>.3f}'.format(
-            rec4['xlso'], rec4['ylso']))             
+            rec4['xlso'], rec4['ylso']))
         print('Coord. of SW corner (geo)   : {:.3f}   {:.3f}'.format(
             rec4['xlatso'], rec4['ylatso']))
         print('Top of the domain           : {:.3f}'.format(rec4['ztop']))
@@ -507,10 +508,10 @@ class adsobin(object):
         print('nvar2d, nvar3d              : {:d}   {:d}'.format(
             rec3['nvar2d'], rec3['nvar3d']))
         if rec3['nvar2d'] > 0 :
-            print('2D variabels                : ' + ('{:<s} ' * 
+            print('2D variabels                : ' + ('{:<s} ' *
                 rec3['nvar2d']).format(*rec5['nomvar2d']))
         if rec3['nvar3d'] > 0 :
-            print('3D variables                : ' + ('{:<s} ' * 
+            print('3D variables                : ' + ('{:<s} ' *
                 rec3['nvar3d']).format(*rec5['nomvar3d']))
 
 
@@ -518,19 +519,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description =
             'arinfopy parser for ADSO/bin files.')
     parser.add_argument('inifile', help = 'File to be parsed')
-    parser.add_argument('-minmax', 
+    parser.add_argument('-minmax',
             help = "Show min/max values for each deadline",
             action = "store_true")
-    parser.add_argument('-deadlines', 
+    parser.add_argument('-deadlines',
             help = "Show deadlines",
             action = "store_true")
     parser.add_argument('-v', '--verbose',
             help = 'Increse output verbosity.',
             action="store_true")
     args = parser.parse_args()
-    
+
     # Create Logger
-    logger = logging.getLogger('elisestat')
+    logger = logging.getLogger(__name__)
     if args.verbose:
         logger.setLevel(logging.DEBUG)
     else:

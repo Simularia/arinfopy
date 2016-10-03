@@ -46,12 +46,11 @@ size = {'int': 4,
 class adsobin(object):
     '''Class to read data from ADSO/BIN file.'''
 
-    logger = logging.getLogger(__name__)
-
     def __init__(self, filename):
         '''
         Consutctor: open and read ADSO/BIN file
         '''
+
         self.filename = filename
         with open(self.filename, 'rb') as f:
             self.__data = f.read()
@@ -84,11 +83,10 @@ class adsobin(object):
         -----DECLARATION OF THE "BINAIRA" TYPE
         Record 1 -> character*8
         '''
-        logger.debug('--- Read Record 1 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec1']
         start, binData = self.__readADSOChunk(start, self.__data)
         _ident1 = struct.unpack('@8s',binData)[0].decode("utf-8")
-        logger.debug('ident1 : {}'.format(_ident1))
+        # logger.debug('ident1 : {}'.format(_ident1))
         return _ident1
 
 
@@ -112,11 +110,11 @@ class adsobin(object):
 
         Record 2 -> character*8 code that generated the file
         '''
-        logger.debug('--- Read Record 2 ---')
+        # logger.debug('--- Read Record 2 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec2']
         start, binData = self.__readADSOChunk(start, self.__data)
         _ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
-        logger.debug('ident2 : {}'.format(_ident2))
+        # logger.debug('ident2 : {}'.format(_ident2))
         return _ident2
 
 
@@ -144,7 +142,7 @@ class adsobin(object):
                               vertical addressing order of 3D arrays (=1)
                3 integers ignored
         '''
-        logger.debug('--- Read Record 3 ---')
+        # logger.debug('--- Read Record 3 ---')
         if offset != None:
             start = offset
         else:
@@ -187,7 +185,7 @@ class adsobin(object):
                  1 real ZTOP
                          absolute heigh of domain top plane in meters
         '''
-        logger.debug('--- Read Record 4 ---')
+        # logger.debug('--- Read Record 4 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec4']
         start, binData = self.__readADSOChunk(start, self.__data)
 
@@ -234,14 +232,14 @@ class adsobin(object):
                        NVAR2D character*8 UNIVAR2D
                                unit of meas of 2D variables
         '''
-        logger.debug('--- Read Record 5 ---')
+        # logger.debug('--- Read Record 5 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec5']
         start, binData = self.__readADSOChunk(start, self.__data)
 
         rec3 = self.getRecord3(deadline)
         nStrings = rec3['nreper'] + 2 * rec3['nvar3d'] + 2 * rec3['nvar2d']
         typedef = '@' + str(nStrings * size['char8']) + 's'
-        logger.debug('typedef: {}'.format(typedef))
+        # logger.debug('typedef: {}'.format(typedef))
 
         sStrings = struct.unpack(typedef, binData)
 
@@ -270,7 +268,7 @@ class adsobin(object):
                 'univar3d': univar3d,
                 'nomvar2d': nomvar2d,
                 'univar2d': univar2d}
-        logger.debug('rec5: {}'.format(rec5))
+        # logger.debug('rec5: {}'.format(rec5))
         return rec5
 
 
@@ -283,7 +281,7 @@ class adsobin(object):
 
            3*NREPER REALS
         '''
-        logger.debug('--- Read Record 6 ---')
+        # logger.debug('--- Read Record 6 ---')
         pass
 
 
@@ -297,20 +295,20 @@ class adsobin(object):
                        NVAR3D 3D arrays with variables on the 3D grid
                        orderd as indicated by NOMVAR3D names vector
         '''
-        logger.debug('--- Read Record 7 ---')
+        # logger.debug('--- Read Record 7 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
         rec3 = self.getRecord3(deadline)
         rec5 = self.getRecord5(deadline)
         rec7 = {}
         for i, name in enumerate(rec5['nomvar3d']):
-            logger.debug('Read 3D variable # {}'.format(i))
+            # logger.debug('Read 3D variable # {}'.format(i))
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
             typedef = '@' + str(nReals) + 'f'
             rec7['%s' % name] = struct.unpack(typedef, binData)
 
         for i, name in enumerate(rec5['nomvar2d']):
-            logger.debug('Read 2D variable # {}'.format(i))
+            # logger.debug('Read 2D variable # {}'.format(i))
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai']
             typedef = '@' + str(nReals) + 'f'
@@ -324,9 +322,9 @@ class adsobin(object):
         '''
         remDeadlines = len(self.__data) % self.size['blockSize']
         if remDeadlines != 0:
-            logger.debug('len(self.__data): {}'.format(len(self.__data)))
-            logger.debug('nBytesDeadline  : {}'.format(
-                self.size['blockSize']))
+            # logger.debug('len(self.__data): {}'.format(len(self.__data)))
+            # logger.debug('nBytesDeadline  : {}'.format(
+                # self.size['blockSize']))
             raise Exception('ADSOpy error.')
         nDeadlines = int(len(self.__data) / self.size['blockSize'])
         return nDeadlines
@@ -386,16 +384,16 @@ class adsobin(object):
                                struct.unpack
         """
 
-        logger.debug('Read chunk of bytes from ADSO/BIN file.')
-        logger.debug('Length of bin data: {}'.format(len(rData)))
-        logger.debug('Initial offset: {}'.format(rStart))
+        # logger.debug('Read chunk of bytes from ADSO/BIN file.')
+        # logger.debug('Length of bin data: {}'.format(len(rData)))
+        # logger.debug('Initial offset: {}'.format(rStart))
         rPad = 4
         rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
         rStart += rPad
         rBinData = rData[rStart:rStart+rLength]
         rEnd = rStart+rLength+rPad      # Final offest
-        logger.debug('Bytes to be read: {}'.format(rLength))
-        logger.debug('Final offset: {}'.format(rEnd))
+        # logger.debug('Bytes to be read: {}'.format(rLength))
+        # logger.debug('Final offset: {}'.format(rEnd))
         return [rEnd, rBinData]
 
 

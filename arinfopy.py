@@ -46,6 +46,7 @@ size = {'int': 4,
 class adsobin(object):
     '''Class to read data from ADSO/BIN file.'''
 
+
     def __init__(self, filename):
         '''
         Consutctor: open and read ADSO/BIN file
@@ -103,7 +104,6 @@ class adsobin(object):
         return version
 
 
-
     def getRecord2(self, deadline):
         '''
         Returns file generator
@@ -116,7 +116,6 @@ class adsobin(object):
         _ident2 = struct.unpack('@8s',binData)[0].decode("utf-8")
         # logger.debug('ident2 : {}'.format(_ident2))
         return _ident2
-
 
 
     def getRecord3(self, deadline = 1, offset = None):
@@ -272,7 +271,6 @@ class adsobin(object):
         return rec5
 
 
-
     def getRecord6(self, start):
         '''
         Read record 6 of deadline
@@ -305,16 +303,17 @@ class adsobin(object):
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name] = struct.unpack(typedef, binData)
+            rec7['%s' % name] = list(struct.unpack(typedef, binData))
 
         for i, name in enumerate(rec5['nomvar2d']):
             # logger.debug('Read 2D variable # {}'.format(i))
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name] = struct.unpack(typedef, binData)
+            rec7['%s' % name] = list(struct.unpack(typedef, binData))
 
         return rec7
+
 
     def __len__(self):
         '''
@@ -416,6 +415,7 @@ class adsobin(object):
                 os.path.basename(self.filename),
                 nd + 1,
                 dtdeadline.strftime('%d/%m/%Y h %H:%M:%S')))
+
 
     def minmax(self):
         '''
@@ -540,11 +540,11 @@ if __name__ == '__main__':
     console.setLevel(logging.DEBUG)
     console.setFormatter(formatter)
     logger.addHandler(console)
-#    flogname = 'elisestat_' + datetime.now().isoformat() + '.log'
-#    flog = logging.FileHandler(flogname)
-#    flog.setLevel(logging.INFO)
-#    flog.setFormatter(formatter)
-#    logger.addHandler(flog)
+   # flogname = 'elisestat_' + datetime.now().isoformat() + '.log'
+   # flog = logging.FileHandler(flogname)
+   # flog.setLevel(logging.INFO)
+   # flog.setFormatter(formatter)
+   # logger.addHandler(flog)
 
     mData = adsobin(args.inifile)
     if args.deadlines:

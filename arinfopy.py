@@ -416,6 +416,25 @@ class adsobin(object):
                 nd + 1,
                 dtdeadline.strftime('%d/%m/%Y h %H:%M:%S')))
 
+    def getDeadlines(self):
+        '''
+        Return a list with datetime of deadlines.
+        '''
+        __deadlines = []
+        for nd in range(len(self)):
+            rec3 = self.getRecord3(nd + 1)
+            dtdeadline = datetime(rec3['ianzer'],
+                    rec3['imozer'],
+                    rec3['ijozer'],
+                    rec3['ihezer'] % 24,
+                    rec3['imizer'],
+                    rec3['isezer'])
+            if rec3['ihezer'] == 24:
+                dtdeadline = dtdeadline + timedelta(days = 1)
+            __deadlines.append(dtdeadline)
+        return __deadlines
+
+
 
     def minmax(self):
         '''

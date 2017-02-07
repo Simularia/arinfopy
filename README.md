@@ -2,14 +2,21 @@ arinfopy
 ========
 
 
-arinfopy is a basic parser for ADSO/bin files written in python. It requires Python 3.5.x but it is also working with Python 2.7.x
+`arinfopy` is a basic parser for **ADSO/BIN** files written in python. It requires Python 3.5.x but it is also working with Python 2.7.x
 
 Use
 ---
 
 You can either use it as an ordinary executable: `$ ./arinfopy.py  filename` or as a python script: `$ python arinfopy.py filename`.
 
-For more details see help: `$ ./arinfopy.py -h`.
+For more details and some options see help: `$ ./arinfopy.py -h`.
+
+
+API
+---
+
+`arinfopy` can also be used an external module in other `python` scripts to acces **ADSO/BIN** files.
+
 
 Features
 --------
@@ -21,6 +28,7 @@ Who Are You?
 ------------
 
 We are [Simularia][simularia] and we do numerical simulations of atmospheric phenomena and data analysis with `R` and `Python`.
+
 
 License
 -------

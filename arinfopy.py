@@ -492,7 +492,7 @@ class adsobin(object):
                           rec3['isezer'])
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days=1)
-        dtsecs = (lastdl - firstdl).total_seconds() / len(self)
+        dtsecs = (lastdl - firstdl).total_seconds() / (len(self) - 1)
 
         print('\n--- ADSO/bin file info ---')
         print('Input archive               : {}'.format(
@@ -505,14 +505,14 @@ class adsobin(object):
         print('# of deadlines              : {}'.format(len(self)))
         print('# of gridpoints (x, y, z)   : {}   {}   {}'.format(
             rec3['immai'], rec3['jmmai'], rec3['kmmai']))
-        print('Grid cell sizes (x, y)      : {:.3f} {:.3f}'.format(
+        print('Grid cell sizes (x, y)      : {:>9.3f} {:>9.3f}'.format(
             rec4['dxmai'], rec4['dymai']))
-        print('Coord. of SW corner (metric): {:.3f}   {:>.3f}'.format(
+        print('Coord. of SW corner (metric): {:>9.3f} {:>9.3f}'.format(
             rec4['xlso'], rec4['ylso']))
-        print('Coord. of SW corner (geo)   : {:.3f}   {:.3f}'.format(
+        print('Coord. of SW corner (geo)   : {:>9.3f} {:>9.3f}'.format(
             rec4['xlatso'], rec4['ylatso']))
         print('Top of the domain           : {:.3f}'.format(rec4['ztop']))
-        print('Levels                      : ' + ('{:.2f} ' *
+        print('Levels                      : ' + ('{:.1f} ' *
               len(rec4['sgrid'])).format(*rec4['sgrid']))
         print('nvar2d, nvar3d              : {:d}   {:d}'.format(
               rec3['nvar2d'], rec3['nvar3d']))

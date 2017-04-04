@@ -492,7 +492,10 @@ class adsobin(object):
                           rec3['isezer'])
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days=1)
-        dtsecs = (lastdl - firstdl).total_seconds() / (len(self) - 1)
+        if lastdl != firstdl:
+            dtsecs = (lastdl - firstdl).total_seconds() / (len(self) - 1)
+        else:
+            dtsecs = 0
 
         print('\n--- ADSO/bin file info ---')
         print('Input archive               : {}'.format(

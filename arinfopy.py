@@ -476,14 +476,7 @@ class adsobin(object):
         rec4 = self.getRecord4(len(self))
         rec5 = self.getRecord5(len(self))
 
-        firstdl = datetime(rec3['ianzei'],
-                           rec3['imozei'],
-                           rec3['ijozei'],
-                           rec3['ihezei'] % 24,
-                           rec3['imizei'],
-                           rec3['isezei'])
-        if rec3['ihezei'] == 24:
-            firstdl = firstdl + timedelta(days=1)
+        # Read last deadline
         lastdl = datetime(rec3['ianzer'],
                           rec3['imozer'],
                           rec3['ijozer'],
@@ -492,6 +485,17 @@ class adsobin(object):
                           rec3['isezer'])
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days=1)
+
+        # Read first deadline
+        rec3 = self.getRecord3(1)
+        firstdl = datetime(rec3['ianzer'],
+                           rec3['imozer'],
+                           rec3['ijozer'],
+                           rec3['ihezer'] % 24,
+                           rec3['imizer'],
+                           rec3['isezer'])
+        if rec3['ihezer'] == 24:
+            firstdl = firstdl + timedelta(days=1)
         if lastdl != firstdl:
             dtsecs = (lastdl - firstdl).total_seconds() / (len(self) - 1)
         else:

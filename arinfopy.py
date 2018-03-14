@@ -295,6 +295,10 @@ class adsobin(object):
                        NVAR3D 3D arrays with variables on the 3D grid
                        orderd as indicated by NOMVAR3D names vector
         '''
+        # Passed deadline argument is 1-based
+        if deadline == 0:
+            print("Deadline must be > 1.")
+            raise ValueError
         # logger.debug('--- Read Record 7 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
         rec3 = self.getRecord3(deadline)

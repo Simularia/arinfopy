@@ -6,3 +6,5 @@ conc*
 *.swp
 
 *.egg-info/*
+.idea/*
+.vscode/*

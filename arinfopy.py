@@ -30,11 +30,11 @@
 #
 ###############################################################################
 
-import sys
-import os
-import struct
 import argparse
 import logging
+import os
+import struct
+import sys
 from datetime import datetime, timedelta
 
 # Size of data type and data padding
@@ -390,6 +390,7 @@ class adsobin(object):
         # logger.debug('Length of bin data: {}'.format(len(rData)))
         # logger.debug('Initial offset: {}'.format(rStart))
         rPad = 4
+        rStart = int(rStart)
         rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
         rStart += rPad
         rBinData = rData[rStart:rStart+rLength]

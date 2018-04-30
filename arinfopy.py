@@ -153,7 +153,7 @@ class adsowritebin(object):
         r7pack=''
         for i in range(nvar3d):
             l1d=list(rec7['var3d'][i].reshape(immai*jmmai*kmmai))
-            print 'nvar3d:',i,rec7['var3d'][i]
+            print('nvar3d:',i,rec7['var3d'][i])
             nReals = immai*jmmai*kmmai
             nlen=nReals*size['real']
             pad1=struct.pack('@i4',nlen)
@@ -162,7 +162,7 @@ class adsowritebin(object):
             r7pack+= pad1+struct.pack(typedef,*l1d)+pad2
         for i in range(nvar2d):
             l2d=list(rec7['var2d'][i].reshape(immai*jmmai))
-            print 'nvar2d:',i,rec7['var2d'][i]
+            print('nvar2d:',i,rec7['var2d'][i])
             nReals = immai*jmmai
             nlen=nReals*size['real']
             pad1=struct.pack('@i4',nlen)

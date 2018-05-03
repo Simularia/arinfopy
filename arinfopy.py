@@ -320,6 +320,40 @@ class adsobin(object):
 
         return rec7
 
+    def getSlice(self, variable, slice=1, deadline=1):
+        '''
+        Read a slice from a given deadline of a given variable.
+        '''
+
+        # TODO:
+        #   Go to deadline offset
+        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
+        rec5 = self.getRecord5(deadline)
+        rec3 = self.getRecord3(deadline)
+        #   1. check if requested variable is in the list of variables
+        #   2. count number of 3D and 2D variables
+        slice = None
+        for name in rec5['nomvar3d']:
+            if (name != variable):
+                start = self.__readADSOHeader(start, self.__data)
+            else:
+                start, binData = self.__readADSOChunk(start, self.__data)
+                nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
+                typedef = '@' + str(nReals) + 'f'
+                slice = list(struct.unpack(typedef, binData))
+                break
+        for name in rec5['nomvar2d']:
+            if (name != variable):
+                start = self.__readADSOHeader(start, self.__data)
+            else:
+                start, binData = self.__readADSOChunk(start, self.__data)
+                nReals = rec3['immai'] * rec3['jmmai']
+                typedef = '@' + str(nReals) + 'f'
+                slice = list(struct.unpack(typedef, binData))
+                break
+
+        return slice
+
     def __len__(self):
         '''
         Get number of deadlines.
@@ -372,11 +406,29 @@ class adsobin(object):
                          'blockSize': nBytesDeadline}
         return deadlineBlock
 
+    def __readADSOHeader(self, rStart, rData):
+        """
+        Function to read from ADSO/BIN
+        Note: Fortran unformatted file add 4 bytes at the beginning and at the
+        end of of each chunk of written data
+
+        INPUT:  rStart      -> initial offset
+                rData       -> binary data as read from input file
+
+        OUTPUT: rEnd        -> final offest
+        """
+        rPad = 4
+        rStart = int(rStart)
+        rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
+        rEnd = rStart+rLength+rPad
+
+        return rEnd
+
     def __readADSOChunk(self, rStart, rData):
         """
         Function to read from ADSO/BIN
         Note: Fortran unformatted file add 4 bytes at the beginning and at the
-        end of each chunk of data written
+        end of each chunk of written data
 
         INPUT:  rStart      -> initial offset
                 rData       -> binary data as read from input file

@@ -320,6 +320,7 @@ class adsobin(object):
 
         return rec7
 
+
     def getSlice(self, variable, slice=1, deadline=1):
         '''
         Read a slice from a given deadline of a given variable.
@@ -329,27 +330,45 @@ class adsobin(object):
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
         rec5 = self.getRecord5(deadline)
         rec3 = self.getRecord3(deadline)
-        #   1. check if requested variable is in the list of variables
-        #   2. count number of 3D and 2D variables
-        slice = None
-        for name in rec5['nomvar3d']:
-            if (name != variable):
-                start = self.__readADSOHeader(start, self.__data)
-            else:
-                start, binData = self.__readADSOChunk(start, self.__data)
-                nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
-                typedef = '@' + str(nReals) + 'f'
-                slice = list(struct.unpack(typedef, binData))
-                break
-        for name in rec5['nomvar2d']:
-            if (name != variable):
-                start = self.__readADSOHeader(start, self.__data)
-            else:
-                start, binData = self.__readADSOChunk(start, self.__data)
-                nReals = rec3['immai'] * rec3['jmmai']
-                typedef = '@' + str(nReals) + 'f'
-                slice = list(struct.unpack(typedef, binData))
-                break
+
+        # nRec7 = (rec3['nvar3d'] * (size['pad'] + rec3['immai'] *
+        #          rec3['jmmai'] * rec3['kmmai'] * size['real']) +
+        #          rec3['nvar2d'] * (size['pad'] + rec3['immai'] *
+        #          rec3['jmmai'] * size['real']))
+
+        # Size of 3D block of data
+        b3Dsize = rec3['immai'] * rec3['jmmai'] * \
+            rec3['kmmai'] * size['real'] + size['pad']
+
+        # Size of 2D block of data
+        b2Dsize = rec3['immai'] * rec3['jmmai'] * size['real'] + size['pad']
+
+        # Size of 2D slice
+        b2Dslice = rec3['immai'] * rec3['jmmai'] * size['real']
+
+        try:
+            # Position of 3D variable (0-based)
+            vc = rec5['nomvar3d'].index(variable)
+
+            # 3D variable offset
+            offset = start + vc * b3Dsize
+
+            # slice offset
+            offset = offset + (slice - 1) * rec3['immai'] * rec3['jmmai']
+            
+        except ValueError:
+            # Position of 2D variable (0 based)
+            vc = rec5['nomvar2d'].index(variable)
+
+            # 2D variable offset
+            offset = start + len(rec5['nomvar3d']) * b3Dsize + vc * b2Dsize
+
+
+        # Subset data and extract slice
+        binData = self.__data[offset:offset+b2Dslice]
+        nReals = rec3['immai'] * rec3['jmmai']
+        typedef = '@' + str(nReals) + 'f'
+        slice = list(struct.unpack(typedef, binData))
 
         return slice
 

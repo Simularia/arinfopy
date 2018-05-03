@@ -325,7 +325,6 @@ class adsobin(object):
         Read a slice from a given deadline of a given variable.
         '''
 
-        # TODO:
         #   Go to deadline offset
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
         rec5 = self.getRecord5(deadline)
@@ -353,6 +352,7 @@ class adsobin(object):
                 break
 
         return slice
+
 
     def __len__(self):
         '''
@@ -420,7 +420,8 @@ class adsobin(object):
         rPad = 4
         rStart = int(rStart)
         rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
-        rEnd = rStart+rLength+rPad
+        rStart += rPad
+        rEnd = rStart+rLength+rPad      # Final offest
 
         return rEnd
 

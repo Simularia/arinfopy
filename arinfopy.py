@@ -210,6 +210,7 @@ class adsobin(object):
                 'ztop': ztop}
         return rec4
 
+
     def getRecord5(self, deadline):
         '''
         Read record 5 of deadline
@@ -320,10 +321,9 @@ class adsobin(object):
 
         return rec7
 
-
     def getSlice(self, variable, slice=1, deadline=1):
         '''
-        Read a slice from a given deadline of a given variable.
+        Read a slice of data from a given deadline of a given variable.
         '''
 
         #   Go to deadline offset
@@ -331,10 +331,7 @@ class adsobin(object):
         rec5 = self.getRecord5(deadline)
         rec3 = self.getRecord3(deadline)
 
-        # nRec7 = (rec3['nvar3d'] * (size['pad'] + rec3['immai'] *
-        #          rec3['jmmai'] * rec3['kmmai'] * size['real']) +
-        #          rec3['nvar2d'] * (size['pad'] + rec3['immai'] *
-        #          rec3['jmmai'] * size['real']))
+        # Check if required variable is in the list of available ones
 
         # Size of 3D block of data
         b3Dsize = rec3['immai'] * rec3['jmmai'] * \
@@ -355,23 +352,30 @@ class adsobin(object):
 
             # slice offset
             offset = offset + (slice - 1) * rec3['immai'] * rec3['jmmai']
-            
         except ValueError:
+            pass
+        
+        try:
             # Position of 2D variable (0 based)
             vc = rec5['nomvar2d'].index(variable)
 
             # 2D variable offset
             offset = start + len(rec5['nomvar3d']) * b3Dsize + vc * b2Dsize
+        except ValueError:
+            pass
 
-
-        # Subset data and extract slice
-        binData = self.__data[offset:offset+b2Dslice]
-        nReals = rec3['immai'] * rec3['jmmai']
-        typedef = '@' + str(nReals) + 'f'
-        slice = list(struct.unpack(typedef, binData))
+        try:
+            # Subset data and extract slice
+            binData = self.__data[offset:offset+b2Dslice]
+            nReals = rec3['immai'] * rec3['jmmai']
+            typedef = '@' + str(nReals) + 'f'
+            slice = list(struct.unpack(typedef, binData))
+        except UnboundLocalError:
+            print('variable {} does not exist.'.format(variable))
+        except Exception:
+            raise
 
         return slice
-
 
     def __len__(self):
         '''
@@ -425,24 +429,6 @@ class adsobin(object):
                          'blockSize': nBytesDeadline}
         return deadlineBlock
 
-    def __readADSOHeader(self, rStart, rData):
-        """
-        Function to read from ADSO/BIN
-        Note: Fortran unformatted file add 4 bytes at the beginning and at the
-        end of of each chunk of written data
-
-        INPUT:  rStart      -> initial offset
-                rData       -> binary data as read from input file
-
-        OUTPUT: rEnd        -> final offest
-        """
-        rPad = 4
-        rStart = int(rStart)
-        rLength = struct.unpack('@I', rData[rStart:rStart+rPad])[0]
-        rStart += rPad
-        rEnd = rStart+rLength+rPad      # Final offest
-
-        return rEnd
 
     def __readADSOChunk(self, rStart, rData):
         """
@@ -470,6 +456,7 @@ class adsobin(object):
         # logger.debug('Bytes to be read: {}'.format(rLength))
         # logger.debug('Final offset: {}'.format(rEnd))
         return [rEnd, rBinData]
+
 
     def deadlines(self):
         '''

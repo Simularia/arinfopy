@@ -34,7 +34,6 @@ import argparse
 import logging
 import os
 import struct
-import sys
 from datetime import datetime, timedelta
 
 # Size of data type and data padding
@@ -210,7 +209,6 @@ class adsobin(object):
                 'ztop': ztop}
         return rec4
 
-
     def getRecord5(self, deadline):
         '''
         Read record 5 of deadline
@@ -234,20 +232,20 @@ class adsobin(object):
         start, binData = self.__readADSOChunk(start, self.__data)
 
         rec3 = self.getRecord3(deadline)
-        nStrings = rec3['nreper'] + 2 * rec3['nvar3d'] + 2 * rec3['nvar2d']
-        typedef = '@' + str(nStrings * size['char8']) + 's'
+        # nStrings = rec3['nreper'] + 2 * rec3['nvar3d'] + 2 * rec3['nvar2d']
+        # typedef = '@' + str(nStrings * size['char8']) + 's'
         # logger.debug('typedef: {}'.format(typedef))
 
-        sStrings = struct.unpack(typedef, binData)
+        # sStrings = struct.unpack(typedef, binData)
 
-        creper = ''
-        nomvar3D = ''
-        univar3d = ''
-        nomvar2d = ''
-        univar2d = ''
+        # creper = ''
+        # nomvar3D = ''
+        # univar3d = ''
+        # nomvar2d = ''
+        # univar2d = ''
 
-        creper = [struct.unpack('@8s', binData[i:rec3['nreper']*8])[0]
-                  for i in range(rec3['nreper'])]
+        # creper = [struct.unpack('@8s', binData[i:rec3['nreper']*8])[0]
+        #           for i in range(rec3['nreper'])]
         offset = (rec3['nreper']) * 8
         nomvar3d = [struct.unpack('@8s', binData[offset+i*8:offset +
                     (i+1)*8])[0].decode('utf-8') for i in
@@ -331,6 +329,9 @@ class adsobin(object):
         rec5 = self.getRecord5(deadline)
         rec3 = self.getRecord3(deadline)
 
+        nomvar3d = [name.strip() for name in rec5['nomvar3d']]
+        nomvar2d = [name.strip() for name in rec5['nomvar2d']]
+
         # Check if required variable is in the list of available ones
 
         # Size of 3D block of data
@@ -345,7 +346,7 @@ class adsobin(object):
 
         try:
             # Position of 3D variable (0-based)
-            vc = rec5['nomvar3d'].index(variable)
+            vc = nomvar3d.index(variable)
 
             # 3D variable offset
             offset = start + vc * b3Dsize
@@ -354,10 +355,10 @@ class adsobin(object):
             offset = offset + (slice - 1) * rec3['immai'] * rec3['jmmai']
         except ValueError:
             pass
-        
+
         try:
             # Position of 2D variable (0 based)
-            vc = rec5['nomvar2d'].index(variable)
+            vc = nomvar2d.index(variable)
 
             # 2D variable offset
             offset = start + len(rec5['nomvar3d']) * b3Dsize + vc * b2Dsize
@@ -429,7 +430,6 @@ class adsobin(object):
                          'blockSize': nBytesDeadline}
         return deadlineBlock
 
-
     def __readADSOChunk(self, rStart, rData):
         """
         Function to read from ADSO/BIN
@@ -456,7 +456,6 @@ class adsobin(object):
         # logger.debug('Bytes to be read: {}'.format(rLength))
         # logger.debug('Final offset: {}'.format(rEnd))
         return [rEnd, rBinData]
-
 
     def deadlines(self):
         '''

@@ -325,9 +325,12 @@ class adsobin(object):
         '''
 
         #   Go to deadline offset
-        start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
-        rec5 = self.getRecord5(deadline)
-        rec3 = self.getRecord3(deadline)
+        offset = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
+        try:
+            rec5 = self.getRecord5(deadline)
+            rec3 = self.getRecord3(deadline)
+        except Exception:
+            raise
 
         nomvar3d = [name.strip() for name in rec5['nomvar3d']]
         nomvar2d = [name.strip() for name in rec5['nomvar2d']]
@@ -342,17 +345,18 @@ class adsobin(object):
         b2Dsize = rec3['immai'] * rec3['jmmai'] * size['real'] + size['pad']
 
         # Size of 2D slice
-        b2Dslice = rec3['immai'] * rec3['jmmai'] * size['real']
+        b2Dslice = int(rec3['immai'] * rec3['jmmai'] * size['real'])
 
         try:
             # Position of 3D variable (0-based)
             vc = nomvar3d.index(variable)
 
             # 3D variable offset
-            offset = start + vc * b3Dsize
+            offset = offset + vc * b3Dsize
 
             # slice offset
-            offset = offset + (slice - 1) * rec3['immai'] * rec3['jmmai']
+            offset = offset + int(size['pad'] / 2) + \
+                (slice - 1) * b2Dslice
         except ValueError:
             pass
 
@@ -361,12 +365,14 @@ class adsobin(object):
             vc = nomvar2d.index(variable)
 
             # 2D variable offset
-            offset = start + len(rec5['nomvar3d']) * b3Dsize + vc * b2Dsize
+            offset = offset + len(rec5['nomvar3d']) * \
+                b3Dsize + vc * b2Dsize + int(size['pad'] / 2)
         except ValueError:
             pass
 
         try:
             # Subset data and extract slice
+            offset = int(offset)
             binData = self.__data[offset:offset+b2Dslice]
             nReals = rec3['immai'] * rec3['jmmai']
             typedef = '@' + str(nReals) + 'f'

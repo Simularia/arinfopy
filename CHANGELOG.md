@@ -1,10 +1,16 @@
-# 2.1.0
+# CHANGELOG
+
+## 2.2.0
+
+- Added `getSlice(variable, slice, deadline)` to select a specific deadline and slice (for 3D variables) of the requested variable. This method should also improve the efficiency of 3D data recovery.
+
+## 2.1.0
 
 - Stripping whitespaces from variables names.
 
 - The deadline argument of `getRecord7` is 1-based. If `deadline=0` is passed to the function a `ValueError` is raised.
 
-# 2.0
+## 2.0
 
 - Many bugfixes and code cleanup.
 
@@ -18,6 +24,6 @@
 
 - Added method to get the list of deadlines.
 
-# 1.0
+## 1.0
 
 - First basic working version.

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.2.1
+
+- Updated documentation.
+
 ## 2.2.0
 
 - Added `getSlice(variable, slice, deadline)` to select a specific deadline and slice (for 3D variables) of the requested variable. This method should also improve the efficiency of 3D data recovery.

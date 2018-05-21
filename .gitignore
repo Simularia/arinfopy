@@ -7,3 +7,4 @@ conc*
 
 *.egg-info/*
 .vscode/*
+test.py

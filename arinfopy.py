@@ -34,6 +34,7 @@ import argparse
 import logging
 import os
 import struct
+import numpy as np
 from datetime import datetime, timedelta
 
 import pkg_resources  # part of setuptools
@@ -384,6 +385,7 @@ class adsobin(object):
         except Exception:
             raise
 
+        slice = np.array(slice)
         return slice
 
     def __len__(self):

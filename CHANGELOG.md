@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.2.2
+
+- `getSlice` returns a numpy array. numpy package is now a requirement.
+- Minor improvement in the output of arinfopy summary.
+
 ## 2.2.1
 
 - Updated documentation.

@@ -36,6 +36,8 @@ import os
 import struct
 from datetime import datetime, timedelta
 
+import pkg_resources  # part of setuptools
+
 # Size of data type and data padding
 size = {'int': 4,
         'real': 4,
@@ -573,7 +575,9 @@ class adsobin(object):
         else:
             dtsecs = 0
 
-        print('\n--- ADSO/bin file info ---')
+        version = pkg_resources.require("arinfopy")[0].version
+        print('\n')
+        print('--- ADSO/bin file info (arinfopy v{}) ---'.format(version))
         print('Input archive               : {}'.format(
             os.path.basename(self.filename)))
         print('Version                     : {}'.format(self.getVersion()))
@@ -601,6 +605,7 @@ class adsobin(object):
         if rec3['nvar3d'] > 0:
             print('3D variables                : ' + ('{:<s} ' *
                   rec3['nvar3d']).format(*rec5['nomvar3d']))
+        print('\n')
 
 
 if __name__ == '__main__':

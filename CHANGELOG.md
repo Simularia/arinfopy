@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.0
+
+- `arinfopy` gets `adsowritebin` class to write adso/bin files (thanks to Bruno Guillaume).
+
 ## 2.2.2
 
 - `getSlice` returns a numpy array. numpy package is now a requirement.

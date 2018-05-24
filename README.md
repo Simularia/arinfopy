@@ -2,6 +2,9 @@ arinfopy
 ========
 
 `arinfopy` is a parser for **ADSO/BIN** files written in python.
+
+Since version 2.3.0 it can also write **ADSO/BIN** files thanks to Bruno Guillaume (Aria Techonologies).
+
 It requires Python 3.5.x but it is also working with Python 2.7.x (unsupported).
 
 Use

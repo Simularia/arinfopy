@@ -11,12 +11,12 @@ def read(fname):
 
 
 setup(
-    name="arinfopy",
-    version="2.2.2",
-    author="Giuseppe Carlino",
-    author_email="g.carlino@simularia.it",
-    description=("A module to read ADSO/BIN information."),
-    license="GNU GPLv2",
+    name = "arinfopy",
+    version = "2.3.0",
+    author = "Giuseppe Carlino",
+    author_email = "g.carlino@simularia.it",
+    description = ("A module to read ADSO/BIN information."),
+    license = "GNU GPLv2",
     packages=['.'],
     long_description=read('README.md')
 )

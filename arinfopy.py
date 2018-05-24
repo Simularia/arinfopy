@@ -5,10 +5,12 @@
 # arinfopy parser for ADSO/bin files.
 # Copyright (C) 2013 by Giuseppe Carlino (Simularia s.r.l.)
 #                       g.carlino@simularia.it
-#
+# Modified 2018 for ADSO/bin writing by Bruno Guillaume (ARIA Technologies)
+#                        bguillaume@aria.fr
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
+
 # of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -36,6 +38,7 @@ import os
 import struct
 import numpy as np
 from datetime import datetime, timedelta
+import numpy as np
 
 import pkg_resources  # part of setuptools
 
@@ -45,6 +48,144 @@ size = {'int': 4,
         'char8': 8,
         'pad': (4 + 4)}
 
+
+class adsowritebin(object):
+    '''Class to write data to ADSO/BIN file.'''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+    def putRecord1(self,ident1):
+        pad1=struct.pack('@i',size['char8'])
+        typedef = '@' + str(size['char8']) + 's'
+        idpack=struct.pack(typedef, str.encode(ident1))
+        pad2=struct.pack('@i', size['char8'])
+        return pad1+idpack+pad2 
+    
+    
+    def putRecord2(self,model1):
+        pad1=struct.pack('@i', size['char8'])
+        typedef = '@' + str(size['char8']) + 's'
+        mopack=struct.pack(typedef, str.encode(model1))
+        pad2=struct.pack('@i', size['char8'])
+        return pad1+mopack+pad2 
+
+
+    def putRecord3(self,rec3):
+        l0=[]
+        l0.append(rec3['ijozer'])
+        l0.append(rec3['imozer'])
+        l0.append(rec3['ianzer'])
+        l0.append(rec3['ihezer'])
+        l0.append(rec3['imizer'])
+        l0.append(rec3['isezer'])
+        l0.append(rec3['ijozei'])
+        l0.append(rec3['imozei'])
+        l0.append(rec3['ianzei'])
+        l0.append(rec3['ihezei'])
+        l0.append(rec3['imizei'])
+        l0.append(rec3['isezei'])
+        l0.append(rec3['immai'])
+        l0.append(rec3['jmmai'])
+        l0.append(rec3['kmmai'])
+        l0.append(rec3['nreper'])
+        l0.append(rec3['nvar3d'])
+        l0.append(rec3['nvar2d'])
+        l0.append(rec3['nevt'])
+        l0.append(rec3['itmax'])
+        l0.append(rec3['nevtpr'])
+        l0.append(rec3['itmopro'])
+        l0.append(rec3['IINDEX'])
+        l0.append(rec3['IKSURF'])
+        l0.append(0);l0.append(0);l0.append(0);
+        nlen = size['int']*27
+        pad1 = struct.pack('@i', nlen)
+        r3pack = struct.pack('@27i', *l0)
+        pad2 = struct.pack('@i', nlen)
+        return pad1+r3pack+pad2
+    ##### DRAFT
+    #bytes=[... for i in range()] # list
+    #return struct.pack(fmt, *bytes) 
+
+    def putRecord4(self,rec4,kmmai):
+        fnum=[]
+        for i in range(kmmai):
+            fnum.append(rec4['sgrid'][i])
+        fnum.append(rec4['dxmai'])
+        fnum.append(rec4['dymai'])
+        fnum.append(rec4['xlso'])
+        fnum.append(rec4['ylso'])
+        fnum.append(rec4['xlatso'])
+        fnum.append(rec4['ylatso'])
+        fnum.append(rec4['ztop'])
+        fnum.append(0);fnum.append(0);fnum.append(0);fnum.append(0)
+        nReals = 11 + kmmai
+        typedef = '@' + str(nReals) + 'f'
+        nlen=size['real']*nReals
+        pad1=struct.pack('@i',nlen)
+        r4pack = struct.pack(typedef, *fnum)
+        pad2=struct.pack('@i',nlen)
+        return pad1+r4pack+pad2
+
+    def putRecord5(self,rec5):
+
+        #nreper=len(creper)
+        nreper=0
+        nvar3d=len(rec5['nomvar3d'])
+        nvar2d=len(rec5['nomvar2d'])
+        
+        nlen=(nreper + 2 *nvar3d+ 2 * nvar2d)*size['char8']
+        pad1=struct.pack('@i',nlen)
+        pad2=struct.pack('@i',nlen)
+        
+        typedef = '@' + str(size['char8']) + 's'
+        r5pack = b''
+        for i in range(nreper):
+            r5pack += struct.pack(typedef, str.encode(rec5['creper'][i]))
+        for i in range(nvar3d):
+            r5pack += struct.pack(typedef, str.encode(rec5['nomvar3d'][i]))
+        for i in range(nvar3d):
+            r5pack += struct.pack(typedef, str.encode(rec5['univar3d'][i]))
+        for i in range(nvar2d):
+            r5pack += struct.pack(typedef, str.encode(rec5['nomvar2d'][i]))
+        for i in range(nvar2d):
+            r5pack += struct.pack(typedef, str.encode(rec5['univar2d'][i]))
+        return  pad1+r5pack+pad2   
+
+    def putRecord6(self):
+        ''' not yet implemented'''
+        pass
+    
+    def putRecord7(self,rec7,immai,jmmai,kmmai):
+        #rec7={'var3d':[vartab31,vartab32,...],'var2d':[vartab21,vartab22,..]}
+        # tables are numpy arrays order in following convention : np.array[kmmai,jmmai,immai], which have been pre-stored in order 'C': (i+(j-1)*immai+(k-1)*immai*jmmai)
+        
+        nvar3d=len(rec7['var3d'])
+        nvar2d=len(rec7['var2d'])
+        
+        r7pack = b''
+        for i in range(nvar3d):
+            l1d=list(rec7['var3d'][i].reshape(immai*jmmai*kmmai))
+            print('nvar3d:',i,rec7['var3d'][i])
+            nReals = immai*jmmai*kmmai
+            nlen=nReals*size['real']
+            pad1=struct.pack('@i',nlen)
+            pad2=struct.pack('@i',nlen)
+            typedef = '@' + str(nReals) + 'f'
+            r7pack+= pad1+struct.pack(typedef,*l1d)+pad2
+        for i in range(nvar2d):
+            l2d=list(rec7['var2d'][i].reshape(immai*jmmai))
+            print('nvar2d:',i,rec7['var2d'][i])
+            nReals = immai*jmmai
+            nlen=nReals*size['real']
+            pad1=struct.pack('@i',nlen)
+            pad2=struct.pack('@i',nlen)
+            typedef = '@' + str(nReals) + 'f'
+            r7pack+= pad1+struct.pack(typedef,*l2d)+pad2
+        return  r7pack
+            
 
 class adsobin(object):
     '''Class to read data from ADSO/BIN file.'''
@@ -79,17 +220,16 @@ class adsobin(object):
                          self.size['rec5'] + self.size['rec6'])
                 }
 
-    def getRecord1(self, deadline):
+    def getRecord1(self, deadline=1):
         '''
         Returns file header
-
         -----DECLARATION OF THE "BINAIRA" TYPE
         Record 1 -> character*8
         '''
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec1']
         start, binData = self.__readADSOChunk(start, self.__data)
         _ident1 = struct.unpack('@8s', binData)[0].decode("utf-8")
-        # logger.debug('ident1 : {}'.format(_ident1))
+         # logger.debug('ident1 : {}'.format(_ident1))
         return _ident1
 
     def getVersion(self):
@@ -104,10 +244,9 @@ class adsobin(object):
             version = header[-3:]
         return version
 
-    def getRecord2(self, deadline):
+    def getRecord2(self, deadline=1):
         '''
         Returns file generator
-
         Record 2 -> character*8 code that generated the file
         '''
         # logger.debug('--- Read Record 2 ---')
@@ -120,9 +259,7 @@ class adsobin(object):
     def getRecord3(self, deadline=1, offset=None):
         '''
         Read record 3 of deadline.
-
         -----RECORD NUMBER 3---------------------------------
-
         27 integers (4 bytes each)
                6 integers time frame
                6 integers of first time frame of the file
@@ -165,12 +302,10 @@ class adsobin(object):
 
         return __rec3
 
-    def getRecord4(self, deadline):
+    def getRecord4(self, deadline=1):
         '''
         Read record 4 of deadline
-
         -----RECORD NUMBER 4-------------------------------------
-
         Record 4 -> 11+kmmai reals
                  kmmai real SGRID
                          vertical terrain following coordinates vector
@@ -212,12 +347,10 @@ class adsobin(object):
                 'ztop': ztop}
         return rec4
 
-    def getRecord5(self, deadline):
+    def getRecord5(self, deadline=1):
         '''
         Read record 5 of deadline
-
         -----RECORD NUMBER 5 : CHARACTER ARRAYS-------------------
-
         Vector of character*8 strings
                        NREPER character *8
                                site name at ref point
@@ -266,9 +399,6 @@ class adsobin(object):
                     (i+1)*8])[0].decode('utf-8') for i in
                     range(rec3['nvar2d'])]
 
-        # Strip whitespaces in nomva3d and nomvar2d
-        nomvar3d = [name.strip() for name in nomvar3d]
-        nomvar2d = [name.strip() for name in nomvar2d]
         rec5 = {'nomvar3d': nomvar3d,
                 'univar3d': univar3d,
                 'nomvar2d': nomvar2d,
@@ -279,28 +409,20 @@ class adsobin(object):
     def getRecord6(self, start):
         '''
         Read record 6 of deadline
-
         -----RECORD NUMBER 6 : KEY POINTS COORDINATES--------------
-
            3*NREPER REALS
         '''
         # logger.debug('--- Read Record 6 ---')
         pass
 
-    def getRecord7(self, deadline):
+    def getRecord7(self, deadline=1):
         '''
         Read record 7 of deadline
-
         -----RECORD NUMBER 7 : 3D FIELDS----------------------------
-
                Record 5 to 5+NVAR3D-1
                        NVAR3D 3D arrays with variables on the 3D grid
                        orderd as indicated by NOMVAR3D names vector
         '''
-        # Passed deadline argument is 1-based
-        if deadline == 0:
-            print("Deadline must be > 1.")
-            raise ValueError
         # logger.debug('--- Read Record 7 ---')
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec7']
         rec3 = self.getRecord3(deadline)
@@ -311,15 +433,14 @@ class adsobin(object):
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
+            rec7['%s' % name] = list(struct.unpack(typedef, binData))
 
         for i, name in enumerate(rec5['nomvar2d']):
             # logger.debug('Read 2D variable # {}'.format(i))
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
-
+            rec7['%s' % name] = list(struct.unpack(typedef, binData))
         return rec7
 
     def getSlice(self, variable, slice=1, deadline=1):
@@ -410,6 +531,7 @@ class adsobin(object):
         rec3 = self.getRecord3(offset=32)
 
         # Compute size of each block
+        
         nRec1 = size['char8'] + size['pad']
         nRec2 = size['char8'] + size['pad']
         nRec3 = 27 * size['int'] + size['pad']
@@ -446,9 +568,8 @@ class adsobin(object):
         Note: Fortran unformatted file add 4 bytes at the beginning and at the
         end of each chunk of written data
 
-        INPUT:  rStart      -> initial offset
+       INPUT:  rStart      -> initial offset
                 rData       -> binary data as read from input file
-
         OUTPUT: rEnd        -> final offest
                 rBinData    -> binary object read to be parsed with
                                struct.unpack
@@ -552,7 +673,14 @@ class adsobin(object):
         rec4 = self.getRecord4(len(self))
         rec5 = self.getRecord5(len(self))
 
-        # Read last deadline
+        firstdl = datetime(rec3['ianzei'],
+                           rec3['imozei'],
+                           rec3['ijozei'],
+                           rec3['ihezei'] % 24,
+                           rec3['imizei'],
+                           rec3['isezei'])
+        if rec3['ihezei'] == 24:
+            firstdl = firstdl + timedelta(days=1)
         lastdl = datetime(rec3['ianzer'],
                           rec3['imozer'],
                           rec3['ijozer'],
@@ -561,21 +689,7 @@ class adsobin(object):
                           rec3['isezer'])
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days=1)
-
-        # Read first deadline
-        rec3 = self.getRecord3(1)
-        firstdl = datetime(rec3['ianzer'],
-                           rec3['imozer'],
-                           rec3['ijozer'],
-                           rec3['ihezer'] % 24,
-                           rec3['imizer'],
-                           rec3['isezer'])
-        if rec3['ihezer'] == 24:
-            firstdl = firstdl + timedelta(days=1)
-        if lastdl != firstdl:
-            dtsecs = (lastdl - firstdl).total_seconds() / (len(self) - 1)
-        else:
-            dtsecs = 0
+        dtsecs = (lastdl - firstdl).total_seconds() / len(self)
 
         version = pkg_resources.require("arinfopy")[0].version
         print('\n')
@@ -590,14 +704,14 @@ class adsobin(object):
         print('# of deadlines              : {}'.format(len(self)))
         print('# of gridpoints (x, y, z)   : {}   {}   {}'.format(
             rec3['immai'], rec3['jmmai'], rec3['kmmai']))
-        print('Grid cell sizes (x, y)      : {:>9.3f} {:>9.3f}'.format(
+        print('Grid cell sizes (x, y)      : {:.3f} {:.3f}'.format(
             rec4['dxmai'], rec4['dymai']))
-        print('Coord. of SW corner (metric): {:>9.3f} {:>9.3f}'.format(
+        print('Coord. of SW corner (metric): {:.3f}   {:>.3f}'.format(
             rec4['xlso'], rec4['ylso']))
-        print('Coord. of SW corner (geo)   : {:>9.3f} {:>9.3f}'.format(
+        print('Coord. of SW corner (geo)   : {:.3f}   {:.3f}'.format(
             rec4['xlatso'], rec4['ylatso']))
         print('Top of the domain           : {:.3f}'.format(rec4['ztop']))
-        print('Levels                      : ' + ('{:.1f} ' *
+        print('Levels                      : ' + ('{:.2f} ' *
               len(rec4['sgrid'])).format(*rec4['sgrid']))
         print('nvar2d, nvar3d              : {:d}   {:d}'.format(
               rec3['nvar2d'], rec3['nvar3d']))
@@ -608,6 +722,7 @@ class adsobin(object):
             print('3D variables                : ' + ('{:<s} ' *
                   rec3['nvar3d']).format(*rec5['nomvar3d']))
         print('\n')
+
 
 
 if __name__ == '__main__':

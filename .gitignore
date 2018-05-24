@@ -6,6 +6,5 @@ conc*
 *.swp
 
 *.egg-info/*
-.idea/*
 .vscode/*
 test.py

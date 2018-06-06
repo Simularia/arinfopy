@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name = "arinfopy",
-    version = "2.3.9999",
+    version = "2.3.1",
     author = "Giuseppe Carlino",
     author_email = "g.carlino@simularia.it",
     description = ("A module to read ADSO/BIN information."),

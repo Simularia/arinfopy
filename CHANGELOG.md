@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.1
+
+- Bugfix
+
 ## 2.3.0
 
 - `arinfopy` gets `adsowritebin` class to write adso/bin files (thanks to Bruno Guillaume).

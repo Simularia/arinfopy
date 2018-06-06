@@ -399,6 +399,9 @@ class adsobin(object):
                     (i+1)*8])[0].decode('utf-8') for i in
                     range(rec3['nvar2d'])]
 
+        # Strip whitespaces in nomva3d and nomvar2d
+        nomvar3d = [name.strip() for name in nomvar3d]
+        nomvar2d = [name.strip() for name in nomvar2d]
         rec5 = {'nomvar3d': nomvar3d,
                 'univar3d': univar3d,
                 'nomvar2d': nomvar2d,
@@ -433,14 +436,15 @@ class adsobin(object):
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name] = list(struct.unpack(typedef, binData))
+            rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
 
         for i, name in enumerate(rec5['nomvar2d']):
             # logger.debug('Read 2D variable # {}'.format(i))
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name] = list(struct.unpack(typedef, binData))
+            rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
+
         return rec7
 
     def getSlice(self, variable, slice=1, deadline=1):

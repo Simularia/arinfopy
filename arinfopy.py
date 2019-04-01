@@ -38,7 +38,6 @@ import os
 import struct
 import numpy as np
 from datetime import datetime, timedelta
-import numpy as np
 
 import pkg_resources  # part of setuptools
 
@@ -57,21 +56,19 @@ class adsowritebin(object):
         Constructor
         '''
 
-    def putRecord1(self,ident1):
-        pad1=struct.pack('@i',size['char8'])
+    def putRecord1(self, ident1):
+        pad1 = struct.pack('@i', size['char8'])
         typedef = '@' + str(size['char8']) + 's'
-        idpack=struct.pack(typedef, str.encode(ident1))
-        pad2=struct.pack('@i', size['char8'])
-        return pad1+idpack+pad2 
-    
-    
+        idpack = struct.pack(typedef, str.encode(ident1))
+        pad2 = struct.pack('@i', size['char8'])
+        return pad1+idpack+pad2
+
     def putRecord2(self,model1):
         pad1=struct.pack('@i', size['char8'])
         typedef = '@' + str(size['char8']) + 's'
         mopack=struct.pack(typedef, str.encode(model1))
         pad2=struct.pack('@i', size['char8'])
         return pad1+mopack+pad2 
-
 
     def putRecord3(self,rec3):
         l0=[]
@@ -109,7 +106,7 @@ class adsowritebin(object):
     #bytes=[... for i in range()] # list
     #return struct.pack(fmt, *bytes) 
 
-    def putRecord4(self,rec4,kmmai):
+    def putRecord4(self, rec4, kmmai):
         fnum=[]
         for i in range(kmmai):
             fnum.append(rec4['sgrid'][i])
@@ -129,8 +126,7 @@ class adsowritebin(object):
         pad2=struct.pack('@i',nlen)
         return pad1+r4pack+pad2
 
-    def putRecord5(self,rec5):
-
+    def putRecord5(self, rec5):
         #nreper=len(creper)
         nreper=0
         nvar3d=len(rec5['nomvar3d'])
@@ -152,13 +148,13 @@ class adsowritebin(object):
             r5pack += struct.pack(typedef, str.encode(rec5['nomvar2d'][i]))
         for i in range(nvar2d):
             r5pack += struct.pack(typedef, str.encode(rec5['univar2d'][i]))
-        return  pad1+r5pack+pad2   
+        return pad1+r5pack+pad2
 
     def putRecord6(self):
         ''' not yet implemented'''
         pass
     
-    def putRecord7(self,rec7,immai,jmmai,kmmai):
+    def putRecord7(self, rec7, immai, jmmai, kmmai):
         #rec7={'var3d':[vartab31,vartab32,...],'var2d':[vartab21,vartab22,..]}
         # tables are numpy arrays order in following convention : np.array[kmmai,jmmai,immai], which have been pre-stored in order 'C': (i+(j-1)*immai+(k-1)*immai*jmmai)
         
@@ -168,7 +164,7 @@ class adsowritebin(object):
         r7pack = b''
         for i in range(nvar3d):
             l1d=list(rec7['var3d'][i].reshape(immai*jmmai*kmmai))
-            print('nvar3d:',i,rec7['var3d'][i])
+            # print('nvar3d:',i,rec7['var3d'][i])
             nReals = immai*jmmai*kmmai
             nlen=nReals*size['real']
             pad1=struct.pack('@i',nlen)
@@ -177,7 +173,7 @@ class adsowritebin(object):
             r7pack+= pad1+struct.pack(typedef,*l1d)+pad2
         for i in range(nvar2d):
             l2d=list(rec7['var2d'][i].reshape(immai*jmmai))
-            print('nvar2d:',i,rec7['var2d'][i])
+            # print('nvar2d:',i,rec7['var2d'][i])
             nReals = immai*jmmai
             nlen=nReals*size['real']
             pad1=struct.pack('@i',nlen)
@@ -672,19 +668,21 @@ class adsobin(object):
         '''
         Print out summary information about ADSO/BIN file.
         '''
+        # Read rec3 of first deadline
+        rec3 = self.getRecord3(1)
+        firstdl = datetime(rec3['ianzer'],
+                           rec3['imozer'],
+                           rec3['ijozer'],
+                           rec3['ihezer'] % 24,
+                           rec3['imizer'],
+                           rec3['isezer'])
+        if rec3['ihezei'] == 24:
+            firstdl = firstdl + timedelta(days=1)
+
         # Read rec3, rec4, rec5 of last deadline
         rec3 = self.getRecord3(len(self))
         rec4 = self.getRecord4(len(self))
         rec5 = self.getRecord5(len(self))
-
-        firstdl = datetime(rec3['ianzei'],
-                           rec3['imozei'],
-                           rec3['ijozei'],
-                           rec3['ihezei'] % 24,
-                           rec3['imizei'],
-                           rec3['isezei'])
-        if rec3['ihezei'] == 24:
-            firstdl = firstdl + timedelta(days=1)
         lastdl = datetime(rec3['ianzer'],
                           rec3['imozer'],
                           rec3['ijozer'],
@@ -693,7 +691,8 @@ class adsobin(object):
                           rec3['isezer'])
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days=1)
-        dtsecs = (lastdl - firstdl).total_seconds() / len(self)
+        ndeadlines = len(self)
+        dtsecs = (lastdl - firstdl).total_seconds() / (ndeadlines - 1)
 
         version = pkg_resources.require("arinfopy")[0].version
         print('\n')
@@ -705,7 +704,7 @@ class adsobin(object):
         print('First deadline              : {}'.format(firstdl.isoformat()))
         print('Last deadline               : {}'.format(lastdl.isoformat()))
         print('Deadline frequency (s)      : {}'.format(dtsecs))
-        print('# of deadlines              : {}'.format(len(self)))
+        print('# of deadlines              : {}'.format(ndeadlines))
         print('# of gridpoints (x, y, z)   : {}   {}   {}'.format(
             rec3['immai'], rec3['jmmai'], rec3['kmmai']))
         print('Grid cell sizes (x, y)      : {:.3f} {:.3f}'.format(
@@ -726,7 +725,6 @@ class adsobin(object):
             print('3D variables                : ' + ('{:<s} ' *
                   rec3['nvar3d']).format(*rec5['nomvar3d']))
         print('\n')
-
 
 
 if __name__ == '__main__':

@@ -225,7 +225,7 @@ class adsobin(object):
         start = (deadline - 1) * self.size['blockSize'] + self.offset['rec1']
         start, binData = self.__readADSOChunk(start, self.__data)
         _ident1 = struct.unpack('@8s', binData)[0].decode("utf-8")
-         # logger.debug('ident1 : {}'.format(_ident1))
+        # logger.debug('ident1 : {}'.format(_ident1))
         return _ident1
 
     def getVersion(self):
@@ -396,8 +396,8 @@ class adsobin(object):
                     range(rec3['nvar2d'])]
 
         # Strip whitespaces in nomva3d and nomvar2d
-        nomvar3d = [name.strip() for name in nomvar3d]
-        nomvar2d = [name.strip() for name in nomvar2d]
+        # nomvar3d = [name.strip() for name in nomvar3d]
+        # nomvar2d = [name.strip() for name in nomvar2d]
         rec5 = {'nomvar3d': nomvar3d,
                 'univar3d': univar3d,
                 'nomvar2d': nomvar2d,
@@ -432,14 +432,16 @@ class adsobin(object):
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
+            # rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
+            rec7[name] = list(struct.unpack(typedef, binData)) 
 
         for i, name in enumerate(rec5['nomvar2d']):
             # logger.debug('Read 2D variable # {}'.format(i))
             start, binData = self.__readADSOChunk(start, self.__data)
             nReals = rec3['immai'] * rec3['jmmai']
             typedef = '@' + str(nReals) + 'f'
-            rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
+            # rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
+            rec7[name] = list(struct.unpack(typedef, binData))
 
         return rec7
 
@@ -517,7 +519,7 @@ class adsobin(object):
         if remDeadlines != 0:
             # logger.debug('len(self.__data): {}'.format(len(self.__data)))
             # logger.debug('nBytesDeadline  : {}'.format(
-                # self.size['blockSize']))
+            #     self.size['blockSize']))
             raise Exception('ADSOpy error.')
         nDeadlines = int(len(self.__data) / self.size['blockSize'])
         return nDeadlines

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.2
+
+- Fixed bug in reading the names of 2D and 3D variables.
+
 ## 2.3.1
 
 - Bugfix

@@ -107,7 +107,7 @@ class adsowritebin(object):
     #return struct.pack(fmt, *bytes) 
 
     def putRecord4(self, rec4, kmmai):
-        fnum=[]
+        fnum = []
         for i in range(kmmai):
             fnum.append(rec4['sgrid'][i])
         fnum.append(rec4['dxmai'])
@@ -116,8 +116,8 @@ class adsowritebin(object):
         fnum.append(rec4['ylso'])
         fnum.append(rec4['xlatso'])
         fnum.append(rec4['ylatso'])
+        fnum.append(0); fnum.append(0); fnum.append(0); fnum.append(0)
         fnum.append(rec4['ztop'])
-        fnum.append(0);fnum.append(0);fnum.append(0);fnum.append(0)
         nReals = 11 + kmmai
         typedef = '@' + str(nReals) + 'f'
         nlen=size['real']*nReals
@@ -127,15 +127,15 @@ class adsowritebin(object):
         return pad1+r4pack+pad2
 
     def putRecord5(self, rec5):
-        #nreper=len(creper)
-        nreper=0
-        nvar3d=len(rec5['nomvar3d'])
-        nvar2d=len(rec5['nomvar2d'])
+        # nreper=len(creper)
+        nreper = 0
+        nvar3d = len(rec5['nomvar3d'])
+        nvar2d = len(rec5['nomvar2d'])
         
-        nlen=(nreper + 2 *nvar3d+ 2 * nvar2d)*size['char8']
-        pad1=struct.pack('@i',nlen)
-        pad2=struct.pack('@i',nlen)
-        
+        nlen = (nreper + 2 * nvar3d + 2 * nvar2d)*size['char8']
+        pad1 = struct.pack('@i', nlen)
+        pad2 = struct.pack('@i', nlen)
+
         typedef = '@' + str(size['char8']) + 's'
         r5pack = b''
         for i in range(nreper):
@@ -153,20 +153,20 @@ class adsowritebin(object):
     def putRecord6(self):
         ''' not yet implemented'''
         pass
-    
+
     def putRecord7(self, rec7, immai, jmmai, kmmai):
         #rec7={'var3d':[vartab31,vartab32,...],'var2d':[vartab21,vartab22,..]}
         # tables are numpy arrays order in following convention : np.array[kmmai,jmmai,immai], which have been pre-stored in order 'C': (i+(j-1)*immai+(k-1)*immai*jmmai)
         
-        nvar3d=len(rec7['var3d'])
-        nvar2d=len(rec7['var2d'])
+        nvar3d = len(rec7['var3d'])
+        nvar2d = len(rec7['var2d'])
         
         r7pack = b''
         for i in range(nvar3d):
-            l1d=list(rec7['var3d'][i].reshape(immai*jmmai*kmmai))
+            l1d = list(rec7['var3d'][i].reshape(immai*jmmai*kmmai))
             # print('nvar3d:',i,rec7['var3d'][i])
             nReals = immai*jmmai*kmmai
-            nlen=nReals*size['real']
+            nlen = nReals*size['real']
             pad1=struct.pack('@i',nlen)
             pad2=struct.pack('@i',nlen)
             typedef = '@' + str(nReals) + 'f'
@@ -180,7 +180,7 @@ class adsowritebin(object):
             pad2=struct.pack('@i',nlen)
             typedef = '@' + str(nReals) + 'f'
             r7pack+= pad1+struct.pack(typedef,*l2d)+pad2
-        return  r7pack
+        return r7pack
             
 
 class adsobin(object):
@@ -694,7 +694,10 @@ class adsobin(object):
         if rec3['ihezer'] == 24:
             lastdl = lastdl + timedelta(days=1)
         ndeadlines = len(self)
-        dtsecs = (lastdl - firstdl).total_seconds() / (ndeadlines - 1)
+        if ndeadlines == 1:
+            dtsecs = 0
+        else:
+            dtsecs = (lastdl - firstdl).total_seconds() / (ndeadlines - 1)
 
         version = pkg_resources.require("arinfopy")[0].version
         print('\n')
@@ -705,7 +708,7 @@ class adsobin(object):
         print('File generator              : {}'.format(self.getRecord2(1)))
         print('First deadline              : {}'.format(firstdl.isoformat()))
         print('Last deadline               : {}'.format(lastdl.isoformat()))
-        print('Deadline frequency (s)      : {}'.format(dtsecs))
+        print('Deadline period (s)         : {}'.format(dtsecs))
         print('# of deadlines              : {}'.format(ndeadlines))
         print('# of gridpoints (x, y, z)   : {}   {}   {}'.format(
             rec3['immai'], rec3['jmmai'], rec3['kmmai']))

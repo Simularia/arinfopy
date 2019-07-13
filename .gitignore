@@ -5,7 +5,7 @@ ave*
 conc*
 *.swp
 
-*.egg-info/*
-.vscode/*
+*.egg-info
+.vscode
 test.py
-venv/*
+venv

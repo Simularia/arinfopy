@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.3
+
+- Fixed bug writing `ztop` in record 4.
+- Fixed bug computing deadlines period.
+
 ## 2.3.2
 
 - Fixed bug in reading the names of 2D and 3D variables.

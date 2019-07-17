@@ -63,15 +63,15 @@ class adsowritebin(object):
         pad2 = struct.pack('@i', size['char8'])
         return pad1+idpack+pad2
 
-    def putRecord2(self,model1):
-        pad1=struct.pack('@i', size['char8'])
+    def putRecord2(self, model1):
+        pad1 = struct.pack('@i', size['char8'])
         typedef = '@' + str(size['char8']) + 's'
-        mopack=struct.pack(typedef, str.encode(model1))
-        pad2=struct.pack('@i', size['char8'])
-        return pad1+mopack+pad2 
+        mopack = struct.pack(typedef, str.encode(model1))
+        pad2 = struct.pack('@i', size['char8'])
+        return pad1+mopack+pad2
 
-    def putRecord3(self,rec3):
-        l0=[]
+    def putRecord3(self, rec3):
+        l0 = []
         l0.append(rec3['ijozer'])
         l0.append(rec3['imozer'])
         l0.append(rec3['ianzer'])
@@ -96,15 +96,17 @@ class adsowritebin(object):
         l0.append(rec3['itmopro'])
         l0.append(rec3['IINDEX'])
         l0.append(rec3['IKSURF'])
-        l0.append(0);l0.append(0);l0.append(0);
+        l0.append(0)
+        l0.append(0)
+        l0.append(0)
         nlen = size['int']*27
         pad1 = struct.pack('@i', nlen)
         r3pack = struct.pack('@27i', *l0)
         pad2 = struct.pack('@i', nlen)
         return pad1+r3pack+pad2
-    ##### DRAFT
-    #bytes=[... for i in range()] # list
-    #return struct.pack(fmt, *bytes) 
+    # ## DRAFT
+    # bytes=[... for i in range()] # list
+    # return struct.pack(fmt, *bytes)
 
     def putRecord4(self, rec4, kmmai):
         fnum = []
@@ -116,14 +118,17 @@ class adsowritebin(object):
         fnum.append(rec4['ylso'])
         fnum.append(rec4['xlatso'])
         fnum.append(rec4['ylatso'])
-        fnum.append(0); fnum.append(0); fnum.append(0); fnum.append(0)
+        fnum.append(0)
+        fnum.append(0)
+        fnum.append(0)
+        fnum.append(0)
         fnum.append(rec4['ztop'])
         nReals = 11 + kmmai
         typedef = '@' + str(nReals) + 'f'
-        nlen=size['real']*nReals
-        pad1=struct.pack('@i',nlen)
+        nlen = size['real']*nReals
+        pad1 = struct.pack('@i', nlen)
         r4pack = struct.pack(typedef, *fnum)
-        pad2=struct.pack('@i',nlen)
+        pad2 = struct.pack('@i', nlen)
         return pad1+r4pack+pad2
 
     def putRecord5(self, rec5):
@@ -131,7 +136,7 @@ class adsowritebin(object):
         nreper = 0
         nvar3d = len(rec5['nomvar3d'])
         nvar2d = len(rec5['nomvar2d'])
-        
+
         nlen = (nreper + 2 * nvar3d + 2 * nvar2d)*size['char8']
         pad1 = struct.pack('@i', nlen)
         pad2 = struct.pack('@i', nlen)
@@ -155,33 +160,35 @@ class adsowritebin(object):
         pass
 
     def putRecord7(self, rec7, immai, jmmai, kmmai):
-        #rec7={'var3d':[vartab31,vartab32,...],'var2d':[vartab21,vartab22,..]}
-        # tables are numpy arrays order in following convention : np.array[kmmai,jmmai,immai], which have been pre-stored in order 'C': (i+(j-1)*immai+(k-1)*immai*jmmai)
-        
+        # rec7={'var3d':[vartab31,vartab32,...],'var2d':[vartab21,vartab22,..]}
+        # tables are numpy arrays order in following convention:
+        # np.array[kmmai,jmmai,immai], # which have been pre-stored in
+        # order 'C': (i+(j-1)*immai+(k-1)*immai*jmmai)
+
         nvar3d = len(rec7['var3d'])
         nvar2d = len(rec7['var2d'])
-        
+
         r7pack = b''
         for i in range(nvar3d):
             l1d = list(rec7['var3d'][i].reshape(immai*jmmai*kmmai))
             # print('nvar3d:',i,rec7['var3d'][i])
             nReals = immai*jmmai*kmmai
             nlen = nReals*size['real']
-            pad1=struct.pack('@i',nlen)
-            pad2=struct.pack('@i',nlen)
+            pad1 = struct.pack('@i', nlen)
+            pad2 = struct.pack('@i', nlen)
             typedef = '@' + str(nReals) + 'f'
-            r7pack+= pad1+struct.pack(typedef,*l1d)+pad2
+            r7pack += pad1+struct.pack(typedef, *l1d)+pad2
         for i in range(nvar2d):
-            l2d=list(rec7['var2d'][i].reshape(immai*jmmai))
+            l2d = list(rec7['var2d'][i].reshape(immai*jmmai))
             # print('nvar2d:',i,rec7['var2d'][i])
             nReals = immai*jmmai
-            nlen=nReals*size['real']
-            pad1=struct.pack('@i',nlen)
-            pad2=struct.pack('@i',nlen)
+            nlen = nReals*size['real']
+            pad1 = struct.pack('@i', nlen)
+            pad2 = struct.pack('@i', nlen)
             typedef = '@' + str(nReals) + 'f'
-            r7pack+= pad1+struct.pack(typedef,*l2d)+pad2
+            r7pack += pad1+struct.pack(typedef, *l2d)+pad2
         return r7pack
-            
+
 
 class adsobin(object):
     '''Class to read data from ADSO/BIN file.'''
@@ -433,7 +440,7 @@ class adsobin(object):
             nReals = rec3['immai'] * rec3['jmmai'] * rec3['kmmai']
             typedef = '@' + str(nReals) + 'f'
             # rec7['%s' % name.strip()] = list(struct.unpack(typedef, binData))
-            rec7[name] = list(struct.unpack(typedef, binData)) 
+            rec7[name] = list(struct.unpack(typedef, binData))
 
         for i, name in enumerate(rec5['nomvar2d']):
             # logger.debug('Read 2D variable # {}'.format(i))
@@ -533,7 +540,6 @@ class adsobin(object):
         rec3 = self.getRecord3(offset=32)
 
         # Compute size of each block
-        
         nRec1 = size['char8'] + size['pad']
         nRec2 = size['char8'] + size['pad']
         nRec3 = 27 * size['int'] + size['pad']

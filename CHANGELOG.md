@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.4
+
+- Make code PEP8 compliant
+
 ## 2.3.3
 
 - Fixed bug writing `ztop` in record 4.

@@ -1,11 +1,32 @@
-*.xmind
-*.soulver
+# Byte-compiled
+__pycache__/
+*.py[cod]
+
+# Distribution and packaging
+*.egg-info
+build/
+dist/
+
+# Developing and testing
+.idea
+.vscode
+test.py
+
+# Data files
 *.nc
 ave*
 conc*
-*.swp
 
-*.egg-info
-.vscode
-test.py
+# Virtual environment
 venv
+
+# OS generated files
+.DS_Store*
+.VolumeIcon.icns
+Icon?
+Thumbs.db
+
+# Random staff
+*.xmind
+*.soulver
+*.swp

@@ -1,22 +1,34 @@
-import os
-from setuptools import setup
+import setuptools
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
-# Utility function to read the README file.
-# Used for the long_description.  It's nice, because now 1) we have a top level
-# README file and 2) it's easier to type in the README file than to put a raw
-# string in below ...
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-
-setup(
+setuptools.setup(
     name="arinfopy",
-    version="2.3.3",
+    version="3.0.0rc2",
     author="Giuseppe Carlino",
     author_email="g.carlino@simularia.it",
-    description=("A module to read ADSO/BIN information."),
-    long_description=read('README.md'),
+    description="A package to read ADSO/BIN data files.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     license="GNU GPLv2",
-    packages=['.']
+    url="https://github.com/Simularia/arinfopy",
+    install_requires=[
+        "numpy>=1.14.3"
+        ],
+    packages=[
+        "arinfopy",
+        "arinfopy.cli"],
+    entry_points={
+        "console_scripts":
+        [
+            "arinfopy=arinfopy.cli.arinfopy:arinfopy"
+        ]
+    },
+    classifiers=[
+        "Programming Language :: Python :: 3.6",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.6"
 )

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.0.0
+
+- Upload code to PyPI.
+- Generate `arinfopy` binary executable.
+
 ## 2.3.4
 
 - Make code PEP8 compliant

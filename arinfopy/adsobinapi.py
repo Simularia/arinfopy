@@ -450,6 +450,83 @@ class adsobin(object):
 
         return rec7
 
+    def getDataset(self, variable):
+        """
+        Return all data (all dimensions) for the requested variable, as
+        numpy array.
+        The array can be either 4D (time, x, y, z) or 3D (time, x, y).
+        If the variable does not exist an empty numpy.array is returned.
+        """
+
+        # Get list of 2D and 3D variable and dimensions
+        try:
+            rec5 = self.getRecord5(deadline=1)
+            rec3 = self.getRecord3(deadline=1)
+
+            nx = rec3['immai']
+            ny = rec3['jmmai']
+            nz = rec3['kmmai']
+
+            nomvar3d = [name.strip() for name in rec5['nomvar3d']]
+            nomvar2d = [name.strip() for name in rec5['nomvar2d']]
+
+            # List of deadlines
+            deadlines = self.getDeadlines()
+            ndeadlines = len(self)
+        except Exception:
+            raise
+
+        # Size of 2D & 3D block of data
+        b2Dsize = nx * ny * size['real'] + size['pad']
+        b3Dsize = nx * ny * nz * size['real'] + size['pad']
+
+        # Is variable 2D or 3D?
+        is3D = False
+        try:
+            # Position of 3D variable (0-based) & offset
+            vc = nomvar3d.index(variable)
+            is3D = True
+            # data block size in each deadline
+            dataSize = int(nx * ny * nz * size['real'])
+            # Init the array
+            allData = np.empty([ndeadlines, nx, ny, nz])
+            dataShape = [nx, ny, nz]
+        except ValueError:
+            vc = nomvar2d.index(variable)
+            dataSize = int(nx * ny * size['real'])
+            allData = np.empty([ndeadlines, nx, ny])
+            dataShape = [nx, ny]
+
+        # Loop on deadlines
+        for deadline in range(len(self)):
+            # Get deadline offset
+            offset = (deadline - 1) * self.size['blockSize'] + \
+                self.offset['rec7']
+
+            if is3D:
+                offset = offset + vc * b3Dsize + int(size['pad'] / 2)
+                nReals = nx * ny * nz
+            else:
+                offset = offset + len(rec5['nomvar3d']) * \
+                    b3Dsize + vc * b2Dsize + int(size['pad'] / 2)
+                nReals = nx * ny
+
+            try:
+                # Subset data and extract slice
+                offset = int(offset)
+                binData = self.__data[offset:offset+dataSize]
+                typedef = '@' + str(nReals) + 'f'
+                dData = list(struct.unpack(typedef, binData))
+
+                # Fill the numpy array
+                dData = np.array(dData)
+                dData = dData.reshape(dataShape)
+                allData[deadline:] = dData
+            except Exception:
+                raise
+
+        return allData
+
     def getSlice(self, variable, slice=1, deadline=1):
         '''
         Read a slice of data from a given deadline of a given variable.

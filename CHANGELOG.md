@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.1.0
+
+- Net API function `getDataset(variable)` returning a numpy array with the full
+variable dataset.
+
 ## 3.0.0
 
 - Upload code to PyPI.

@@ -10,12 +10,14 @@ dist/
 # Developing and testing
 .idea
 .vscode
-test.py
+tests
+test*.py
 
 # Data files
 *.nc
 ave*
 conc*
+*.bin
 
 # Virtual environment
 venv

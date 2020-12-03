@@ -470,8 +470,8 @@ class adsobin(object):
             nomvar3d = [name.strip() for name in rec5['nomvar3d']]
             nomvar2d = [name.strip() for name in rec5['nomvar2d']]
 
-            # List of deadlines
-            deadlines = self.getDeadlines()
+            # # List of deadlines
+            # deadlines = self.getDeadlines()
             ndeadlines = len(self)
         except Exception:
             raise
@@ -500,7 +500,7 @@ class adsobin(object):
         # Loop on deadlines
         for deadline in range(len(self)):
             # Get deadline offset
-            offset = (deadline - 1) * self.size['blockSize'] + \
+            offset = (deadline) * self.size['blockSize'] + \
                 self.offset['rec7']
 
             if is3D:

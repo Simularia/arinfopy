@@ -10,8 +10,10 @@ dist/
 # Developing and testing
 .idea
 .vscode
+.ipynb*
 tests
 test*.py
+*.ipynb
 
 # Data files
 *.nc
@@ -21,6 +23,7 @@ conc*
 
 # Virtual environment
 venv
+env
 
 # OS generated files
 .DS_Store*

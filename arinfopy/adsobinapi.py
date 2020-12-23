@@ -500,8 +500,7 @@ class adsobin(object):
         # Loop on deadlines
         for deadline in range(len(self)):
             # Get deadline offset
-            offset = (deadline) * self.size['blockSize'] + \
-                self.offset['rec7']
+            offset = deadline * self.size['blockSize'] + self.offset['rec7']
 
             if is3D:
                 offset = offset + vc * b3Dsize + int(size['pad'] / 2)
@@ -520,7 +519,7 @@ class adsobin(object):
 
                 # Fill the numpy array
                 dData = np.array(dData)
-                dData = dData.reshape(dataShape)
+                dData = dData.reshape(dataShape, order='F')
                 allData[deadline:] = dData
             except Exception:
                 raise
@@ -683,7 +682,8 @@ class adsobin(object):
                                   rec3['ijozer'],
                                   rec3['ihezer'] % 24,
                                   rec3['imizer'],
-                                  rec3['isezer'])
+                                  rec3['isezer'],
+                                  tzinfo=None)
             if rec3['ihezer'] == 24:
                 dtdeadline = dtdeadline + timedelta(days=1)
             __deadlines.append(dtdeadline)

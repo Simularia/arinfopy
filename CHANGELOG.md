@@ -3,7 +3,7 @@
 ## 3.1.0
 
 - Net API function `getDataset(variable)` returning a numpy array with the full
-variable dataset.
+ dataset as [time, z, y, x] for 3D variables or [time, y, x] for 2D variable.
 
 ## 3.0.0
 

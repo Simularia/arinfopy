@@ -66,6 +66,8 @@ Giuseppe Carlino (Simularia) g.carlino@simularia.it
 
 Bruno Guillaume (ARIA Technologies)                         bguillaume@aria.fr
 
+Matteo Paolo Costa (Arianet s.r.l.) costa@aria-net.it
+
 ## License
 
 arinfopy parser for ADSO/bin files.

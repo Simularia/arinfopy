@@ -1,9 +1,14 @@
 # CHANGELOG
 
+
+## 3.1.1
+
+- Corrected type in the changelog and updated README file.
+
 ## 3.1.0
 
 - Net API function `getDataset(variable)` returning a numpy array with the full
- dataset as [time, z, y, x] for 3D variables or [time, y, x] for 2D variable.
+ dataset as [time, x, y, z] for 3D variables or [time, x, y] for 2D variable.
 
 ## 3.0.0
 

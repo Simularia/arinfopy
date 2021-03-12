@@ -35,6 +35,7 @@
 # import os
 import struct
 from datetime import datetime, timedelta
+import pytz
 
 import numpy as np
 # import pkg_resources
@@ -683,7 +684,7 @@ class adsobin(object):
                                   rec3['ihezer'] % 24,
                                   rec3['imizer'],
                                   rec3['isezer'],
-                                  tzinfo=None)
+                                  tzinfo=pytz.UTC)
             if rec3['ihezer'] == 24:
                 dtdeadline = dtdeadline + timedelta(days=1)
             __deadlines.append(dtdeadline)

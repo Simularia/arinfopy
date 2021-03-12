@@ -4,7 +4,7 @@
 
 It also includes the `arinfopy` command line tool to summarize the content of **ADSO/BIN** files.
 
-It requires Python >= 3.5.x. Python2 is unsupported.
+It requires Python >= 3.6.x (Python2 is unsupported.)
 
 ## Installation
 
@@ -66,6 +66,8 @@ Giuseppe Carlino (Simularia) g.carlino@simularia.it
 Bruno Guillaume (ARIA Technologies)                         bguillaume@aria.fr
 
 Matteo Paolo Costa (Arianet s.r.l.) costa@aria-net.it
+
+Valeria Dentis (Simularia) v.dentis@simularia.it
 
 ## License
 

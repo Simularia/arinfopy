@@ -35,3 +35,6 @@ Thumbs.db
 *.xmind
 *.soulver
 *.swp
+
+# Sphinx docs
+docs/_build

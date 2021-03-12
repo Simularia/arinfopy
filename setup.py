@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="arinfopy",
-    version="3.1.0",
+    version="3.2.0",
     author="Giuseppe Carlino",
     author_email="g.carlino@simularia.it",
-    description="A package to read ADSO/BIN data files.",
+    description="A package to read and write ADSO/BIN data files.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="GNU GPLv2",

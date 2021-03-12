@@ -1,8 +1,8 @@
 # CHANGELOG
 
+## 3.2.0
 
-## 3.1.1
-
+- Deadlines now have "UTC" time zone.
 - Corrected type in the changelog and updated README file.
 
 ## 3.1.0

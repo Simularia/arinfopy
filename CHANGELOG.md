@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.2.1
+
+- Add `pytz` dependency.
+
 ## 3.2.0
 
 - Deadlines now have "UTC" time zone.

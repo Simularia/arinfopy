@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="arinfopy",
-    version="3.2.1",
+    version="3.2.1.9999",
     author="Giuseppe Carlino",
     author_email="g.carlino@simularia.it",
     description="A package to read and write ADSO/BIN data files.",
@@ -14,8 +14,7 @@ setuptools.setup(
     license="GNU GPLv2",
     url="https://github.com/Simularia/arinfopy",
     install_requires=[
-        "numpy>=1.14.3",
-        "pytz>=2023.3.post1"
+        "numpy>=1.24",
     ],
     packages=[
         "arinfopy",
@@ -27,9 +26,9 @@ setuptools.setup(
         ]
     },
     classifiers=[
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6"
+    python_requires=">=3.9"
 )

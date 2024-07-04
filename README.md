@@ -30,6 +30,13 @@ pip install arinfopy
 
 You probably don’t want to use `sudo` when you run `pip`.
 
+Alternatively you can use  `pipx`, like this:
+
+```sh
+pipx install arinfopy
+pipx inject arinfopy setuptools
+```
+
 ## Use
 
 You can use the command line tools as follows.

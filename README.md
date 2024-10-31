@@ -34,7 +34,6 @@ Alternatively you can use  `pipx`, like this:
 
 ```sh
 pipx install arinfopy
-pipx inject arinfopy setuptools
 ```
 
 ## Use

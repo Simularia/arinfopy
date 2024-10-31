@@ -15,6 +15,8 @@ setuptools.setup(
     url="https://github.com/Simularia/arinfopy",
     install_requires=[
         "numpy>=1.24",
+        "setuptools>=70.0.0"
+
     ],
     packages=[
         "arinfopy",

@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.2.1.9999
+## 3.2.2
 
 - Update documentation adding `pipx` as a method of installation.
 - Remove `pytz` dependency to use standard library. Python 3.9 is now required.

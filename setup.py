@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="arinfopy",
-    version="3.2.1.9999",
+    version="3.2.2",
     author="Giuseppe Carlino",
     author_email="g.carlino@simularia.it",
     description="A package to read and write ADSO/BIN data files.",

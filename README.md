@@ -4,7 +4,7 @@
 
 It also includes the `arinfopy` command line tool to summarize the content of **ADSO/BIN** files.
 
-It requires Python >= 3.6.x (Python2 is unsupported.)
+It requires Python >= 3.9.x (Python2 is unsupported.)
 
 ## Installation
 
@@ -14,23 +14,7 @@ It requires Python >= 3.6.x (Python2 is unsupported.)
 pip install arinfopy
 ```
 
-You either want to do this into a *user* environment (putting the `arinofpy` executable in `~/.local/bin/arinfopy`) like this:
-
-```sh
-pip install --user arinfopy
-```
-
-or put it into a virtualenv, to avoid modifying the system python’s libraries, like this:
-
-```sh
-python3 -m venv ./venv
-source venv/bin/activate
-pip install arinfopy
-```
-
-You probably don’t want to use `sudo` when you run `pip`.
-
-Alternatively you can use  `pipx`, like this:
+Use [pipx](https://github.com/pypa/pipx) to install the command line tool to isolated environment:
 
 ```sh
 pipx install arinfopy
@@ -61,6 +45,7 @@ optional arguments:
 `arinfopy` can also be used an external module in other `python` scripts to read and write **ADSO/BIN** files.
 
 Documentation for this feature is in preparation. 
+
 ## Who Are You
 
 We are [Simularia][simularia] and we do numerical simulations of atmospheric phenomena and data analysis with `R` and `Python`.

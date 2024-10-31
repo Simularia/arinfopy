@@ -52,13 +52,13 @@ We are [Simularia][simularia] and we do numerical simulations of atmospheric phe
 
 ## Contributors
 
-Giuseppe Carlino (Simularia) g.carlino@simularia.it
+[Giuseppe Carlino](https://github.com/gcarlino) (Simularia s.r.l.)
 
-Bruno Guillaume (ARIA Technologies)                         bguillaume@aria.fr
+Bruno Guillaume (ARIA Technologies) bguillaume@aria.fr
 
-Matteo Paolo Costa (Arianet s.r.l.) costa@aria-net.it
+Matteo Paolo Costa (while at Arianet s.r.l.)
 
-Valeria Dentis (Simularia) v.dentis@simularia.it
+Valeria Dentis (while at Simularia s.r.l.)
 
 ## License
 
